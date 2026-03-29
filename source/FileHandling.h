@@ -1,0 +1,34 @@
+#ifndef FILEHANDLING_HEADER
+#define FILEHANDLING_HEADER
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#include "Emubase.h"
+
+#define FILEEXTENSIONS ".sms.gg"
+
+extern ConfigData cfg;
+
+void initSettings(void);
+bool updateSettingsFromNGP(void);
+int loadSettings(void);
+void saveSettings(void);
+bool loadROM(const u8 *rom, int size);
+bool loadGame(const RomHeader *rh);
+void checkMachine(void);
+int loadNVRAM(void);
+void saveNVRAM(void);
+void loadState(void);
+void saveState(void);
+//void ejectCart(void);
+void selectGame(void);
+int loadColorBIOS(void);
+int loadBWBIOS(void);
+
+#ifdef __cplusplus
+} // extern "C"
+#endif
+
+#endif // FILEHANDLING_HEADER

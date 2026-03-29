@@ -1,0 +1,83 @@
+S8GBA revision history
+-=-=-=-=-=-=-=-=-=-=-=-
+
+
+V1.1.8 - 2026-03-29 (FluBBa)
+
+V1.1.7 - 2023-11-07 (FluBBa)
+	Added new debug menu.
+	Fixed pause on older Sega machines (again).
+	Better menu traversing.
+
+V1.1.4 - 2021-10-16 (FluBBa)
+	Reverted a GG_IO optimization.
+	Fixed TV noise graphics after Power off.
+	Fixed pause on older Sega machines.
+	Better selection of machines.
+
+V1.1.3 - 2021-10-12 (FluBBa)
+	Fixed crash at startup.
+
+V1.1.2 - 2021-10-11 (FluBBa)
+	Fixed TV noise.
+
+V1.1.1 - 2021-09-05 (FluBBa)
+	Code cleanup.
+
+V1.0.0 - 2016-03-12 (FluBBa)
+	Fixed Pause on SG-1000.
+
+V0.9.0 - 2015-07-25 (FluBBa)
+	Added SRAM support.
+
+V0.8.0 - 2015-07-08 (FluBBa)
+	Added SG-1000 Arcade support.
+	Added support for 3 button MegaDrive pad.
+	Added mini Bios from Power Base Converter for MegaDrive.
+	Added SDSC debugging support and forwarder to emulators.
+	Fixed sprite palette bug for TMS9918.
+	Turned of sprites for Mode 1.
+
+V0.7.0 - 2010-01-16 (FluBBa)
+	Fixed Super Tetris & Frogger proto when machine is set to "Auto".
+	Fixed PGA Tour Golf (low bits of VDP Stat not zero).
+	Changed palette buffering to middle of screen.
+
+V0.6.0 - 2010-01-07 (FluBBa)
+	Added option to turn off 3D display.
+	Fixed color/saturation setting for SG games.
+	Fixed some bogus handling of the 3D display mode.
+	Fixed "Perfect Sprites" mode, should now be used as default.
+	Changed startup values for VDP regs 0,1 & 10, might break something.
+	Changed sound renderer to be more correct.
+	Removed PAL timing for GG.
+
+V0.5.0 - 2009-12-02 (FluBBa)
+	Added keyboard support for SC-3000/SG-1000.
+	Added support for mode 3 graphics.
+	Added support for red/cyan glasses in SMS 3D games.
+	Added color/saturation setting to display.
+	Fixed issues with mode 0,1 & 2 graphics.
+	Fixed cut off of long filenames in the browser.
+	Fixed timing of VInt.
+	Changed colors for the filebrowser.
+
+V0.4.0 - 2009-11-01 (FluBBa)
+	Added R as FastForward.
+	Fixed Bios handling on MD (Frogger proto GG2SMS works).
+	Fixed "Border Off" for GG.
+	Sprite collision is now "On" by default.
+
+V0.3.0 - 2009-10-20 (FluBBa)
+	Fixed Bios handling a bit (GG games works again).
+
+V0.2.0 - 2009-10-19 (FluBBa)
+	After loading game GUI is automatically closed.
+	Added internal Bios (for Ace of Aces & Shadow Dancer).
+
+V0.1.0 - 2009-10-13 (FluBBa)
+	Initial release, allmost everything from SMSAdvance seems to work.
+
+V0.0.0 - 2009-07-25 (FluBBa)
+	Started Coding.
+

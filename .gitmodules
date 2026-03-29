@@ -1,0 +1,15 @@
+[submodule "source/ARMZ80"]
+	path = source/ARMZ80
+	url = https://github.com/FluBBaOfWard/ARMZ80.git
+[submodule "source/SegaVDP"]
+	path = source/SegaVDP
+	url = https://github.com/FluBBaOfWard/SegaVDP.git
+[submodule "source/Shared"]
+	path = source/Shared
+	url = https://github.com/FluBBaOfWard/NDS_Shared.git
+[submodule "source/SN76496"]
+	path = source/SN76496
+	url = https://github.com/FluBBaOfWard/SN76496.git
+[submodule "source/PPI8255"]
+	path = source/PPI8255
+	url = https://github.com/FluBBaOfWard/PPI8255.git

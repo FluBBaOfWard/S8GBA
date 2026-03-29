@@ -1,0 +1,10 @@
+build
+S8GBA.xcodeproj/project.xcworkspace/xcuserdata
+*.sms
+*.gg
+*.sg
+*.sc
+*.elf
+*.gba
+*.sav
+*.zip

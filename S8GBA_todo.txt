@@ -1,0 +1,97 @@
+S8DS To do
+------------
+
+	Make sure Region is saved in settings. #13
+	Save region & machine?
+	Games that crash the emulator when machine is set to 'auto' :
+	Master of darkness
+	Vampire
+	Dragon's trap
+	Ninja gaiden
+	AK miracle world (jap)
+	AK shinobi world
+	Makai retsuden
+
+	Update sound more often? See NitroSwan.
+
+	Add Casio PV-2000? http://www43.tok2.com/home/cmpslv/Pv2000/EnrPV.htm
+	Add TOMY PuyTa? Tomy Tutor?
+	VDP Test crashes in MegaDrive test?
+	Check size of used SRAM 8kB, 16kB, 24kB & 32kB.
+		Try to save SRAM if it exists?
+	Add more mappers for Korean SMS games. games database?
+	Fix real IO-map for SC-3000.
+	Map SMS palette to GG palette in GGSMS mode.
+
+	Sprite glitch in Tetris?
+
+
+Misc:
+	Add loadCard for SMS1/MD.
+	Terebi Oekaki/Graphic Board support?
+	Light Phaser support?
+	Add SMS(J) as options in machine?
+	ActionReplay/GameGenie support?
+	EEPROM support for some GG titles.
+	SG-1000 has 1kB RAM. Done.
+	SC-3000 (and OMV?) has 2kB RAM. Done.
+	Add MegaDrive joypad emulation. Done?
+	Check 2player in F-16 Fightin Falcon (J).
+
+GUI:
+	Show cart/card inserted/ejected.
+
+Sound:
+	Pitch is wrong?
+
+Games:
+	PitFighter, scroll glitch.
+	BattleToads GG, check old revisions. VDP loop hang?
+	Terminator 2 Judgement Day.gg, test! Glitches on CrabEmu.
+	Moldorian(JP).gg - Sensitive to startup timing, HIrq timing?
+	Super Tetris - doesn't work on export SMS?
+	Excellent Dizzy Collection - Changes screen resolution before it hangs?
+
+CPU:
+
+
+
+
+Code:
+
+
+DAA table:
+--------------------------------------------
+|H in| val |N|H out| out |
+| 0  | 0-9 |0| 0   | 0-9 |
+| 0  | A-F |0| 1   | 0-5 |
+| 1  | 0-9 |0| 0   | 6-F |
+| 1  | A-F |0| 1   | 0-5 |
+
+| 0  | 0-9 |1| 0   | 0-9 |
+| 0  | A-F |1| 0   | 4-9 |
+| 1  | 0-5 |1| 1   | A-F |
+| 1  | 6-F |1| 0   | 0-9 |
+|    |     | |     |
+
+
+	mov r0,z80a,lsl#4
+	cmn r0,#0x60000000		;@ check low nybble and save top nybble for H check
+	tstcc z80f,z80f,lsr#5		;@ PSR_H to carry.
+	orrcs r0,r0,#0x06
+
+	cmn z80a,#0x66000000
+	tstcc z80f,z80f,lsr#2		;@ PSR_C to carry.
+	orrcs r0,r0,#0x60
+
+	ands z80f,z80f,#PSR_n		;@ check if last instruction was add or sub.
+	orrcs z80f,z80f,#PSR_C		;@ the ands doesn't change carry as long as it doesn't have to shift the imidiate value.
+
+	rsbne r0,r0,#0x100
+	add z80a,z80a,r0,lsl#24
+	get_pzs_tbl r2
+	ldrb r2,[r2,z80a,lsr#24]	;@ get PZS
+	orr z80f,z80f,r2
+	adds r0,r0,r0,lsl#28
+	orrcs z80f,z80f,#PSR_H
+

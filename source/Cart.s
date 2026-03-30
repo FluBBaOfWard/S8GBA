@@ -7,6 +7,7 @@
 
 #define EMBEDDED_ROM
 
+	.global machineInit
 	.global loadCart
 	.global ejectCart
 	.global cartSaveState
@@ -64,18 +65,9 @@
 
 	.global EMU_RAM
 	.global EMU_SRAM
-	.global BIOS_US_Space
-	.global BIOS_JP_Space
-	.global BIOS_GG_Space
-	.global BIOS_COLECO_Space
-	.global BIOS_MSX_Space
-	.global BIOS_SORDM5_Space
 	.global g_BIOSBASE_US
 	.global g_BIOSBASE_JP
 	.global g_BIOSBASE_GG
-	.global g_BIOSBASE_COLECO
-	.global g_BIOSBASE_MSX
-	.global g_BIOSBASE_SORDM5
 	.global gRomSize
 	.global romSpacePtr
 
@@ -145,7 +137,7 @@ rawRom:
 //	.incbin "sg/SG-1000 M2 Check Program.sg"
 endRom:
 rawBios:
-//	.incbin "SMS BIOS (US v1.3).sms"
+	.incbin "SMS BIOS (US v1.3).sms"
 //	.incbin "SMS (v2.0) [BIOS].sms"
 //	.incbin "SMS BIOS (JP).sms"
 #endif
@@ -161,6 +153,38 @@ mdBios:
 	.section .ewram, "ax", %progbits
 	.align 2
 ;@----------------------------------------------------------------------------
+machineInit: 					;@ Called from C
+	.type   machineInit STT_FUNC
+;@----------------------------------------------------------------------------
+	stmfd sp!,{z80ptr,lr}
+#ifdef EMBEDDED_ROM
+	ldr r3,=rawBios
+	str r3,g_BIOSBASE_US
+//	str r3,g_BIOSBASE_JP
+//	str r3,g_BIOSBASE_COLECO
+//	str r3,g_BIOSBASE_MSX
+//	str r3,g_BIOSBASE_SORDM5
+
+	ldr r0,=gRomSize
+	mov r1,#endRom-rawRom
+	str r1,[r0]
+	ldr r0,=romSpacePtr
+	ldr r1,=rawRom
+	str r1,[r0]
+//	ldr r0,=powerIsOn
+//	mov r1,#1
+//	strb r1,[r0]
+#endif
+
+//	bl memoryMapInit
+	bl gfxInit
+//	bl ioInit
+	bl soundInit
+//	bl cpuInit
+
+	ldmfd sp!,{z80ptr,lr}
+	bx lr
+;@----------------------------------------------------------------------------
 loadCart: 		;@ Called from C:  r0=emuFlags
 	.type loadCart STT_FUNC
 ;@----------------------------------------------------------------------------
@@ -168,14 +192,7 @@ loadCart: 		;@ Called from C:  r0=emuFlags
 
 	ldr z80ptr,=Z80OpTable
 
-//	ldr r3,=rawBios
-//	str r3,g_BIOSBASE_US
-//	str r3,g_BIOSBASE_JP
-//	str r3,g_BIOSBASE_COLECO
-//	str r3,g_BIOSBASE_MSX
-//	str r3,g_BIOSBASE_SORDM5
-	ldr r3,=rawRom
-//	ldr r3,romSpacePtr
+	ldr r3,romSpacePtr
 
 //	orr r0,r0,#GG_MODE
 //	orr r0,r0,#SG_MODE
@@ -189,9 +206,7 @@ loadCart: 		;@ Called from C:  r0=emuFlags
 	str r3,romBase				;@ Set romBase
 	str r3,cartBase				;@ Set cartBase
 
-	mov r0,#endRom-rawRom
-	str r0,gRomSize
-//	ldr r0,gRomSize
+	ldr r0,gRomSize
 	bl romSizeToPowerOf2
 	movs r2,r0,lsr#13			;@ Rom size in 8k banks
 	subne r2,r2,#1
@@ -815,7 +830,6 @@ sizeLoop1:
 	bx lr
 
 
-
 ;@----------------------------------------------------------------------------
 //	.section itcm
 ;@----------------------------------------------------------------------------
@@ -1325,9 +1339,9 @@ gScalingSet:
 gCartFlags:
 	.byte 0 					;@ cartflags
 gMachine:
-	.byte 0
+	.byte HW_AUTO
 gMachineSet:
-	.byte 0
+	.byte HW_AUTO
 gConfig:
 	.byte 0						;@ config, bit 7=BIOS on/off, bit 6=X as GG Start, bit 5=Select as Reset, bit 4=R as FastForward
 gConfigSet:
@@ -1354,7 +1368,6 @@ BankMap3:	.byte 0
 BankMap4:	.byte 0
 	.byte 0,0,0		;@ alignment.
 
-	.pool
 ;@----------------------------------------------------------------------------
 #ifdef GBA
 	.section .sbss				;@ This is EWRAM on GBA with devkitARM
@@ -1378,12 +1391,6 @@ RDMEMTBL_:
 	.space 8*4
 ROMBANKMAP:
 	.space 256*4
-BIOS_US_Space:
-	.space 0x40000				;@ US/EU 256kB BIOS max
-BIOS_JP_Space:
-	.space 0x2000				;@ JP 8kB BIOS max
-BIOS_GG_Space:
-	.space 0x400				;@ GG 1kB BIOS max
 
 ;@----------------------------------------------------------------------------
 	.end

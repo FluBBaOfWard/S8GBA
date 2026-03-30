@@ -253,11 +253,11 @@ VDP0Reset:
 
 	mov r0,#0x0000				;@ BGR map
 	str r0,[vdpptr,#vdpBgrMapOfs0]
-	mov r0,#0x0300				;@ BGR map
+	mov r0,#0x0000				;@ BGR map
 	str r0,[vdpptr,#vdpBgrMapOfs1]
 	mov r0,#0x08000				;@ BGR tiles
 	str r0,[vdpptr,#vdpBgrTileOfs]
-	mov r0,#0x400000			;@ SPR tiles
+	mov r0,#0x10000				;@ SPR tiles
 	str r0,[vdpptr,#vdpSprTileOfs]
 
 	ldr r0,=gEmuFlags
@@ -2043,7 +2043,6 @@ GFX_BG0CNT:
 	.short 0
 GFX_BG1CNT:
 	.short 0
-	.pool
 
 
 #ifdef GBA

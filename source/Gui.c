@@ -128,9 +128,9 @@ EWRAM_BSS char gameInfoString[32];
 char *const ctrlTxt[]   = {"1P","2P"};
 char *const dispTxt[]   = {"Unscaled","Scaled"};
 
-const char *const machTxt[]  = {"Auto", "NeoGeo Pocket", "NeoGeo Pocket Color"};
+const char *const machTxt[] = {"Auto", "SG-1000", "SC-3000", "OMV", "SG-1000 II", "Mark III", "Master System", "Master System 2", "Game Gear", "Mega Drive", "Coleco", "MSX", "Sord M5"};
 const char *const bordTxt[]  = {"Black", "Border Color", "None"};
-const char *const langTxt[]  = {"Japanese", "English"};
+const char *const cntrTxt[] = {"Auto", "US (NTSC)", "Europe (PAL)", "Japan (NTSC)"};
 
 /// This is called at the start of the emulator
 void setupGUI() {

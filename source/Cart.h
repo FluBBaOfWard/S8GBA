@@ -17,9 +17,6 @@ extern u8 gArcadeGameSet;
 
 extern u8 *romSpacePtr;
 extern u8 EMU_SRAM[0x8000];
-extern u8 BIOS_US_Space[0x40000];
-extern u8 BIOS_JP_Space[0x2000];
-extern u8 BIOS_GG_Space[0x400];
 extern void *g_BIOSBASE_US;
 extern void *g_BIOSBASE_JP;
 extern void *g_BIOSBASE_GG;
@@ -27,6 +24,7 @@ extern void *g_BIOSBASE_COLECO;
 extern void *g_BIOSBASE_MSX;
 extern void *g_BIOSBASE_SORDM5;
 
+void machineInit(void);
 void loadCart(int);
 void ejectCart(void);
 

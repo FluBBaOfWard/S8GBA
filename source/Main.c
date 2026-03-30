@@ -64,7 +64,7 @@ int main(int argc, char **argv) {
 		loadColorBIOS();
 	}
 //	checkMachine();
-//	machineInit();
+	machineInit();
 	if (romsAvailable > 0) {
 		const RomHeader *rh = findRom(0);
 		loadGame(rh);
@@ -148,8 +148,8 @@ static void setupGraphics() {
 	GFX_DISPCNT = MODE_0
 			| OBJ_1D_MAP
 			| BG0_ON
-//			| BG1_ON
-//			| BG2_ON
+			| BG1_ON
+			| BG2_ON
 			| BG3_ON
 			| OBJ_ON
 //			| WIN0_ON

@@ -65,11 +65,7 @@
 	.syntax unified
 	.arm
 
-#if GBA
-	.section .ewram, "ax", %progbits	;@ For the GBA
-#else
-	.section .text						;@ For anything else
-#endif
+	.section .text
 	.align 2
 ;@----------------------------------------------------------------------------
 ;@ SG-1000				Fix real io map (mixed access for some devices).
@@ -260,12 +256,6 @@ IO_Params_Coleco_W:
 	.long 0x00E000E0, SN76496_W			;@ 0xE0-0xFF
 	.long 0x00000000, empty_W			;@ 0x00-0x7F
 
-emptyReadPtr:
-	.long empty_R
-joypadA_R_ptr:
-	.long joypadA2ButtonR
-joypadB_R_ptr:
-	.long joypadB2ButtonR
 ;@----------------------------------------------------------------------------
 io_params:
 ;@----------------------------------------------------------------------------
@@ -288,6 +278,19 @@ io_params:
 	.long IO_Params_MD_R,     IO_Params_MD_W			;@ HW_MEGATECH
 	.long IO_Params_GG_R,     IO_Params_GG_W			;@ HW_GG (GG mode)
 
+#if GBA
+	.section .ewram, "ax", %progbits	;@ For the GBA
+#else
+	.section .text						;@ For anything else
+#endif
+	.align 2
+;@----------------------------------------------------------------------------
+emptyReadPtr:
+	.long empty_R
+joypadA_R_ptr:
+	.long joypadA2ButtonR
+joypadB_R_ptr:
+	.long joypadB2ButtonR
 ;@----------------------------------------------------------------------------
 ioReset:
 ;@----------------------------------------------------------------------------
@@ -333,7 +336,7 @@ ioReset:
 	tst r3,#GG_MODE
 	addne r4,r4,#8
 
-	adr lr,io_params
+	ldr lr,=io_params
 	ldr r0,[lr,r4,lsl#3]!
 	ldr r1,[lr,#4]
 

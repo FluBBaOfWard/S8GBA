@@ -37,6 +37,7 @@
 
 	.global VDP0SetMode
 	.global VDP0ScanlineBPReset
+	.global VDP0SetSprScan
 	.global VDP0LatchHCounter
 
 	.global VDP0VCounterR
@@ -384,7 +385,7 @@ loadScaleValues:
 	b buildSpriteScaling
 
 BG_SCALING_TO_FIT:	;@ 1:1, 7:6, 5:4
-	.long 0xFFFF,0xDB6D,0xCCCD
+	.long 0xD4E0,0xDB6D,0xCCCD
 	.long 0x00C0,0x00C0,0x00C0
 	.long 0x0000,0x0000,0x0000
 	.long 0x0100,0x0100,0x0080
@@ -401,17 +402,17 @@ BG_SCALING_1_1_GG:
 BG_SCALING_ASPECT_PAL:			;@ 192->142, 224->165, 240->177
 	.long 0xBD56,0xBD56,0xBD56
 	.long 0x19A7,0x0DB2,0x00C0
-	.long    -34,   -17,    -8
+	.long    -9,      2,     8
 	.long 0x0150,0x0150,0x00AD
 BG_SCALING_ASPECT_NTSC:			;@ 192->170, 224->199, 240->213, 216->192, 9->8
 	.long 0xE38F,0xE2AB,0xE2AB
 	.long 0x0BB5,0x00C0,0x00C0
-	.long    -12,0x0004,0x000C
+	.long      5,0x0004,0x000C
 	.long 0x0100,0x0120,0x0090
 BG_SCALING_ASPECT_GG:			;@ 192->160, 216->180, 6->5
 	.long 0xD555,0xD555,0xD555
 	.long 0x10B0,0x07BA,0x06BA
-	.long    -19,    -3,0x0008
+	.long      0,    10,    12
 	.long 0x0133,0x0133,0x0092
 BG_SCALING_ASPECT_GGMODE:		;@ 160x144 -> 160x120, 6->5
 	.long 0xD555,0xD555,0xD555
@@ -473,12 +474,12 @@ scaleLoop:
 	ldmfd sp!,{r4-r8}
 	bx lr
 ;@----------------------------------------------------------------------------
-VDP0ApplyScaling:		;@ r0-r3, r12 modified.
+VDP0ApplyScaling:		;@ r0-r2, r12 modified.
 	.type VDP0ApplyScaling STT_FUNC
 ;@----------------------------------------------------------------------------
 	ldr vdpptr,=VDP0
 ;@----------------------------------------------------------------------------
-applyScaling:		;@ r0-r3, r12 modified.
+applyScaling:		;@ r0-r2 modified, r12 = vdpptr.
 ;@----------------------------------------------------------------------------
 	ldrb r0,[vdpptr,#vdpHeightMode]
 	and r0,r0,#VDPMODE_HEIGHTMASK	;@ 224 and/or 240 height
@@ -698,7 +699,7 @@ ggSGLoop:
 ;@----------------------------------------------------------------------------
 delayVRAM:					;@ This is used to get rid of graphics corruption
 ;@----------------------------------------------------------------------------
-	stmfd sp!,{r4-r9,lr}
+	stmfd sp!,{r4-r11,lr}
 
 	ldr r0,[vdpptr,#vdpDirtyTilesPtr]
 	add r1,vdpptr,#dirtyTiles
@@ -715,7 +716,7 @@ dVRamLoop0:
 	subs r2,r2,#1
 	bpl dVRamLoop0
 
-	ldmfd sp!,{r4-r9,lr}
+	ldmfd sp!,{r4-r11,lr}
 	bx lr
 
 dVRamCopy:
@@ -724,12 +725,11 @@ dVRamCopy:
 
 	add r6,r4,r2,lsl#5
 	add r7,r5,r2,lsl#5
-	mov r8,#0x8
 dVRamLoop1:
-	ldr r3,[r6],#4
-	str r3,[r7],#4
-	subs r8,r8,#1
-	bhi dVRamLoop1
+	ldmia r6!,{r3,r8,r10,r11}
+	stmia r7!,{r3,r8,r10,r11}
+	ldmia r6!,{r3,r8,r10,r11}
+	stmia r7!,{r3,r8,r10,r11}
 	bx lr
 
 ;@----------------------------------------------------------------------------
@@ -747,8 +747,9 @@ transferVRAM:
 	stmfd sp!,{r12,lr}
 	adr r0,tData
 	ldmia r0,{r4-r6}
-	ldr r4,[vdpptr,#vdpDirtyTilesPtr]
-	ldr r5,[vdpptr,#VRAMCopyPtr]
+//	ldr r4,[vdpptr,#vdpDirtyTilesPtr]
+	add r4,vdpptr,#dirtyTiles
+	ldr r5,[vdpptr,#VRAMPtr]
 	ldr r7,[vdpptr,#vdpBgrTileOfs]
 	ldr r8,[vdpptr,#vdpSprTileOfs]
 	add r7,r7,#BG_GFX
@@ -994,33 +995,45 @@ tileLoop3_1:
 	bne tileLoop3_1
 	bx lr
 
+#ifdef NDS
+	.section .itcm, "ax", %progbits		;@ For the NDS ARM9
+#elif GBA
+	.section .iwram, "ax", %progbits	;@ For the GBA
+#else
+	.section .text						;@ For everything else
+#endif
+	.align 2
 ;@----------------------------------------------------------------------------
 transferVRAM_m4:
 ;@----------------------------------------------------------------------------
 	ldr r9,=0x20202020			;@ Dirtytiles mode4 bgr & spr
-
+	mov r1,#0x200
+tl4pre:
+	subs r1,r1,#4
+	ldmfdmi sp!,{r12,pc}
 tileLoop4_0:
-	ldr r10,[r4]
-	str r9,[r4],#4
+	ldr r10,[r4,r1]
+	teq r10,r9
+	beq tl4pre
+	str r9,[r4,r1]
 	tst r10,#0x00000020
-	addne r1,r1,#0x20
 	bleq tileLoop4_1
+	add r1,r1,#1
 	tst r10,#0x00002000
-	addne r1,r1,#0x20
 	bleq tileLoop4_1
+	add r1,r1,#1
 	tst r10,#0x00200000
-	addne r1,r1,#0x20
 	bleq tileLoop4_1
+	add r1,r1,#1
 	tst r10,#0x20000000
-	addne r1,r1,#0x20
 	bleq tileLoop4_1
-	cmp r1,#0x4000
-	bne tileLoop4_0
+	subs r1,r1,#7
+	bpl tileLoop4_0
 
 	ldmfd sp!,{r12,pc}
 
 tileLoop4_1:
-	ldr r0,[r5,r1]
+	ldr r0,[r5,r1,ror#32-5]
 
 	ands r3,r0,#0x000000FF
 	ldrne r3,[r6,r3,lsl#2]
@@ -1034,13 +1047,19 @@ tileLoop4_1:
 	ldrne r2,[r6,r2,lsr#22]
 	orrne r3,r3,r2,lsl#3
 
-	str r3,[r7,r1]
-	str r3,[r8,r1]
-	add r1,r1,#4
-	tst r1,#0x1C
-	bne tileLoop4_1
+	str r3,[r7,r1,ror#32-5]
+	str r3,[r8,r1,ror#32-5]
+	adds r1,r1,#0x20000000
+	bcc tileLoop4_1
 
 	bx lr
+
+#ifdef GBA
+	.section .ewram, "ax", %progbits	;@ For the GBA
+#else
+	.section .text						;@ For anything else
+#endif
+	.align 2
 ;@----------------------------------------------------------------------------
 transferVRAM_m5:
 ;@----------------------------------------------------------------------------
@@ -1082,7 +1101,7 @@ vblIrqHandler:
 	.type vblIrqHandler STT_FUNC
 ;@----------------------------------------------------------------------------
 	stmfd sp!,{r4-r11,lr}
-	bl vblSound1
+	bl soundSwapBuffers
 	bl calculateFPS
 	ldr vdpptr,=VDP0
 
@@ -1126,26 +1145,26 @@ noJump:
 
 	ldr r2,=DMA0Buff
 	mov r4,r2
-	mov r8,r3
+	mov r8,#(GAME_WIDTH-SCREEN_WIDTH)/2
+	orr r8,r8,r3,lsl#16
 	subs r3,r3,r7
 	subpl r3,r3,r7
-	subpl r8,r8,r7
+	subpl r8,r8,r7,lsl#16
 	mov r10,#SCREEN_HEIGHT
 scrolLoop2:
 	ldrb r11,[r5],#1
-	add r0,r11,r8,lsl#16
+	add r0,r11,r8
 	mov r1,r0
 	mov r9,r0
-	stmia r4!,{r0-r1,r9,r11}
+	stmia r4!,{r0-r1,r9}
 	subs r6,r6,r6,lsl#16
 	subcs r6,r6,r6,lsl#16
-	adc r8,r8,#0
+	addcs r8,r8,#0x10000
 	adc r5,r5,#0
 	adcs r3,r3,#1
-	subcs r8,r8,r7
+	subcs r8,r8,r7,lsl#16
 	subs r10,r10,#1
 	bne scrolLoop2
-
 
 
 	mov r8,#REG_BASE
@@ -1153,7 +1172,7 @@ scrolLoop2:
 
 	add r1,r8,#REG_DMA0SAD
 ;@	mov r2,r2					;@ Setup DMA buffer for scrolling:
-	ldmia r2!,{r4-r7}			;@ Read
+	ldmia r2!,{r4-r6}			;@ Read
 	add r3,r8,#REG_BG0HOFS		;@ DMA0 always goes here
 	stmia r3,{r4-r6}			;@ Set 1st value manually, HBL is AFTER 1st line
 	ldr r4,=0xA6600003			;@ noIRQ hblank 32bit repeat incsrc inc_reloaddst, 4 word
@@ -1221,7 +1240,7 @@ scrolLoop2:
 
 	ldrb r4,[vdpptr,#vdpTVType]
 	bl scanKeys
-	bl vblSound2
+	bl soundRender
 	ldmfd sp!,{r4-r11,lr}
 	bx lr
 ;@----------------------------------------------------------------------------
@@ -1252,8 +1271,7 @@ earlyFrame:					;@ Called at line 0,16 or 32	(r0,r2 safe to use)
 ;@------------------------------------------------------------------------------
 	stmfd sp!,{r1,r3-r12,lr}
 
-	ldr r0,=SPRS
-	ldrb r0,[r0]
+	ldrb r0,[vdpptr,#vdpSprScan]
 	cmp r0,#0
 	ldreq r0,=defaultScanlineHook
 	ldrne r0,=spriteScanner
@@ -1289,9 +1307,8 @@ endFrame:					;@ Called just before screen end (~line 192)	(r0 & r2 safe to use)
 	beq sprDMADo1
 sDMARet:
 ;@--------------------------
-	ldr r0,=gMachine
-	ldrb r0,[r0]
-	cmp r0,#HW_GG
+	ldrb r4,[vdpptr,#vdpType]
+	cmp r4,#VDPSega3155378		;@ HW_GG
 	bleq paletteTxGGSG
 ;@--------------------------
 
@@ -1299,9 +1316,7 @@ sDMARet:
 	ldr r1,=bColor
 	ldrb r0,[r1]
 	cmp r0,#0
-	ldreq r1,=gMachine
-	ldrbeq r1,[r1]
-	cmpeq r1,#HW_GG
+	cmpeq r4,#VDPSega3155378	;@ HW_GG
 	beq setBc
 	ldrb r0,[vdpptr,#vdpRealMode]
 	add r3,r2,#0x80				;@ SG palette
@@ -1338,8 +1353,8 @@ setBc:
 	stmib r0,{r1-r3}			;@ Store with pre increment
 
 
-//	bl transferVRAM
-	bl delayVRAM
+	bl transferVRAM
+//	bl delayVRAM
 	ldr r0,frameTotal
 	add r0,r0,#1
 	str r0,frameTotal
@@ -1454,6 +1469,14 @@ ss0Add:
 	bmi ss0Chk
 	b ss0End
 
+#ifdef NDS
+	.section .itcm, "ax", %progbits		;@ For the NDS ARM9
+#elif GBA
+	.section .iwram, "ax", %progbits	;@ For the GBA
+#else
+	.section .text						;@ For everything else
+#endif
+	.align 2
 ;@----------------------------------------------------------------------------
 ;@sprDMADo:					;@ Called from endFrame. YATX
 ;@----------------------------------------------------------------------------
@@ -1465,7 +1488,7 @@ sprDMADo0:						;@ Called from earlyFrame if no spr scanning.
 
 sprDMADo1:						;@ Called from endFrame.
 	ldr r2,[vdpptr,#vdpTmpOAMBuffer]	;@ Destination
-	ldrb r0,SPRS
+	ldrb r0,[vdpptr,#vdpSprScan]
 	cmp r0,#0
 	bne pSprDo
 	add r2,r2,#0x200
@@ -1487,7 +1510,8 @@ sprPassDoM4:
 	orrcs r6,r6,#0x00008000		;@ 8x16 shape
 	orrcs r6,r6,#0x02000000		;@ Scaling param
 
-	ldr r5,bgScaleValue
+	ldr r5,=bgScaleValue
+	ldr r5,[r5]
 	add r5,r5,#1
 dm4_1:
 	add r9,r10,#0x80
@@ -1496,7 +1520,8 @@ dm4_1:
 	tst r0,#4
 	orrne r7,r7,#0x100
 	ldrb r1,[vdpptr,#vdpMode1]
-	and r1,r1,#8
+	and r1,r1,#8				;@ EC
+	add r1,r1,#(GAME_WIDTH-SCREEN_WIDTH)/2
 	mov r1,r1,lsl#23
 dm4_2:
 	ldrb r0,[r10],#1			;@ MasterSystem OBJ, r0=Ypos.
@@ -1535,7 +1560,7 @@ dm4_2:
 	bx lr
 
 dm4_3:
-	mov r0,#0x2C0				;@ Double, y=192
+	mov r0,#0x200+SCREEN_HEIGHT	;@ Double, y=SCREEN_HEIGHT
 dm4_4:
 	str r0,[r2],#8
 	subs r8,r8,#1
@@ -1543,7 +1568,12 @@ dm4_4:
 	bx lr
 
 
-
+#ifdef GBA
+	.section .ewram, "ax", %progbits	;@ For the GBA
+#else
+	.section .text						;@ For anything else
+#endif
+	.align 2
 ;@----------------------------------------------------------------------------
 pSprDo:
 	ldr r8,smsOamPtr
@@ -1567,7 +1597,8 @@ pSpr1:
 	add r9,r10,#0x80
 	mov r7,#PRIORITY
 	ldrb r1,[vdpptr,#vdpMode1]
-	and r1,r1,#8
+	and r1,r1,#8				;@ EC
+	add r1,r1,#(GAME_WIDTH-SCREEN_WIDTH)/2
 	mov r1,r1,lsl#23
 pSpr2:
 	ldrb r0,[r10],#1			;@ MasterSystem OBJ, r0=Ypos.
@@ -1609,13 +1640,12 @@ pSpr3:
 	ldr r0,smsOamPtr
 	sub r8,r0,r8
 	rsb r8,r8,#0x80
-	mov r0,#0x2C0				;@ Double, y=192
+	mov r0,#0x200+SCREEN_HEIGHT	;@ Double, y=SCREEN_HEIGHT
 pSpr4:
 	subs r8,r8,#1
 	strpl r0,[r2],#8
 	bhi pSpr4
 	bx lr
-
 
 
 ;@----------------------------------------------------------------------------
@@ -1675,7 +1705,7 @@ dm2_2:
 	and r0,r0,#0xFF0000
 	orr r0,r6,r0,lsr#16			;@ Size plus scaling?
 	tst r4,#0xF000000			;@ Color 0 sprite = invisible.
-	moveq r0,#0x2C0				;@ Double, y=192
+	moveq r0,#0x200+SCREEN_HEIGHT	;@ Double, y=SCREEN_HEIGHT
 	orr r3,r0,r9,lsr#7
 	str r3,[r2],#4				;@ Store OBJ Atr 0,1. Xpos, ypos, flip, scale/rot, size, shape.
 
@@ -1697,11 +1727,11 @@ dm2_2:
 
 	subs r8,r8,#1
 	bne dm2_2
-;@	bx lr
+//	bx lr
 
 dm2_3:
 	add r8,r8,#32
-	mov r0,#0x2C0				;@ Double, y=192
+	mov r0,#0x200+SCREEN_HEIGHT	;@ Double, y=SCREEN_HEIGHT
 dm2_4:
 	str r0,[r2],#8
 	str r0,[r2],#8
@@ -1788,9 +1818,9 @@ bgM1Row:
 	bic r1,r1,#0xFF00
 	orr r1,r1,r7				;@ Palette & tileoffset
 
-	str r0,[r4,r7,lsr#17]		;@ Write to GBA Tilemap RAM, BGR color
-	str r1,[r4,#0x800]			;@ Write to GBA Tilemap RAM, behind sprites
-	str r0,[r4],#4				;@ Write to GBA Tilemap RAM, in front of sprites
+	str r0,[r4,r7,lsr#17]		;@ Write to NDS/GBA Tilemap RAM, BGR color
+	str r1,[r4,#0x800]			;@ Write to NDS/GBA Tilemap RAM, behind sprites
+	str r0,[r4],#4				;@ Write to NDS/GBA Tilemap RAM, in front of sprites
 	subs r5,r5,#1
 	bne bgM1Row
 	add r3,r3,#8
@@ -1816,9 +1846,9 @@ bgM2Loop:
 	bic r1,r1,#0xFF00
 	orr r1,r1,r11				;@ Palette & tile offset.
 
-	str r0,[r4,r8,lsr#12]		;@ Write to GBA Tilemap RAM, BGR color
-	str r1,[r4,#0x800]			;@ Write to GBA Tilemap RAM, behind sprites
-	str r0,[r4],#4				;@ Write to GBA Tilemap RAM, in front of sprites
+	str r0,[r4,r8,lsr#12]		;@ Write to NDS/GBA Tilemap RAM, BGR color
+	str r1,[r4,#0x800]			;@ Write to NDS/GBA Tilemap RAM, behind sprites
+	str r0,[r4],#4				;@ Write to NDS/GBA Tilemap RAM, in front of sprites
 	subs r5,r5,#1
 	bne bgM2Loop
 	add r7,r7,r8				;@ Add tileoffset for group.
@@ -1846,9 +1876,9 @@ bgM3Loop:
 	bic r1,r1,#0xFF00
 	orr r1,r7,r1,lsl#2			;@ Palette & tile offset.
 
-	str r0,[r4,r8,lsr#12]		;@ Write to GBA Tilemap RAM, BGR color
-	str r1,[r4,#0x800]			;@ Write to GBA Tilemap RAM, behind sprites
-	str r0,[r4],#4				;@ Write to GBA Tilemap RAM, in front of sprites
+	str r0,[r4,r8,lsr#12]		;@ Write to NDS/GBA Tilemap RAM, BGR color
+	str r1,[r4,#0x800]			;@ Write to NDS/GBA Tilemap RAM, behind sprites
+	str r0,[r4],#4				;@ Write to NDS/GBA Tilemap RAM, in front of sprites
 	subs r5,r5,#1
 	bne bgM3Loop
 	add r7,r7,r8				;@ Add tileoffset for group.
@@ -1858,6 +1888,14 @@ bgM3Loop:
 	ldmfd sp!,{r3-r11,pc}
 
 
+#ifdef NDS
+	.section .itcm, "ax", %progbits		;@ For the NDS ARM9
+#elif GBA
+	.section .iwram, "ax", %progbits	;@ For the GBA
+#else
+	.section .text						;@ For everything else
+#endif
+	.align 2
 ;@----------------------------------------------------------------------------
 ;@bgChrFinish				;@ End of frame...
 ;@----------------------------------------------------------------------------
@@ -1891,7 +1929,7 @@ bgM4Row:
 
 	and r1,r7,r0,lsr#11
 	orr r1,r1,r7,lsl#1			;@ Bgr color 0x30 & 0x40
-	str r1,[r4,r7,lsr#4]		;@ Write to GBA Tilemap RAM, BGR color
+	str r1,[r4,r7,lsr#4]		;@ Write to NDS/GBA Tilemap RAM, BGR color
 
 	tst r7,r0,lsl#4				;@ Shift out top P bit, test low P bit.
 	bic r0,r0,r5
@@ -1899,11 +1937,11 @@ bgM4Row:
 	add r0,r0,r1				;@ XY flip + color.
 
 	orr r0,r0,r2,lsr#1
-	str r0,[r4,#0x800]			;@ Write to GBA Tilemap RAM, behind sprites
+	str r0,[r4,#0x800]			;@ Write to NDS/GBA Tilemap RAM, behind sprites
 	add r0,r0,r7,lsl#9			;@ New tile offset
 	biccc r0,r0,r6,lsl#16
 	biceq r0,r0,r6
-	str r0,[r4],#4				;@ Write to GBA Tilemap RAM, in front of sprites
+	str r0,[r4],#4				;@ Write to NDS/GBA Tilemap RAM, in front of sprites
 	tst r4,#0x3C				;@ 32 tiles wide
 	bne bgM4Row
 	subs r9,r9,#1
@@ -1911,13 +1949,19 @@ bgM4Row:
 
 	ldmfd sp!,{r3-r11,pc}
 
+#ifdef GBA
+	.section .ewram, "ax", %progbits	;@ For the GBA
+#else
+	.section .text						;@ For anything else
+#endif
+	.align 2
 ;@----------------------------------------------------------------------------
 bgMode5:
 	ldr r2,=0x01C001C0
 	ldr r5,=0xFC00FC00
 ;@	ldr r6,=0x000003FF
 ;@	ldr r7,=0x00010001
-;@	r10 = NDS destination address
+;@	r10 = NDS/GBA destination address
 ;@	lr = y scroll row
 ;@	r11 = VDPRAM
 ;@ MSB          LSB
@@ -1930,7 +1974,7 @@ bgM5Loop:
 	add r4,r10,lr,lsl#6
 
 	add lr,lr,#1
-;@	ldr r0,[vdpptr,#vdpScrollMask]
+//	ldr r0,[vdpptr,#vdpScrollMask]
 	mov r0,#256
 	cmp lr,r0,lsr#3
 	subpl lr,lr,r0,lsr#3
@@ -1939,7 +1983,7 @@ bgM5Row:
 	ldr r0,[r3],#4				;@ Read from MegaDrive Tilemap RAM
 
 	and r1,r7,r0,lsr#11
-	str r1,[r4,r7,lsr#4]		;@ Write to GBA Tilemap RAM, BGR color
+	str r1,[r4,r7,lsr#4]		;@ Write to NDS/GBA Tilemap RAM, BGR color
 
 	bic r1,r0,r5
 	and r0,r5,r0,lsr#1
@@ -1947,9 +1991,9 @@ bgM5Row:
 	orr r0,r0,r7,lsl#15			;@ MD palette
 	orr r1,r1,r0				;@ XY flip + color.
 
-	str r1,[r4,#0x800]			;@ Write to GBA Tilemap RAM, behind sprites
+	str r1,[r4,#0x800]			;@ Write to NDS/GBA Tilemap RAM, behind sprites
 	mov r1,#0
-	str r1,[r4],#4				;@ Write to GBA Tilemap RAM, in front of sprites
+	str r1,[r4],#4				;@ Write to NDS/GBA Tilemap RAM, in front of sprites
 	tst r4,#0x3C				;@ 32 tiles wide
 	bne bgM5Row
 	subs r9,r9,#1
@@ -1964,11 +2008,25 @@ VDP0ScanlineBPReset:
 	ldr vdpptr,=VDP0
 	b VDPScanlineBPReset
 ;@----------------------------------------------------------------------------
+VDP0SetSprScan:
+	.type VDP0ScanlineBPReset STT_FUNC
+;@----------------------------------------------------------------------------
+	ldr vdpptr,=VDP0
+	b VDPSetSprScan
+;@----------------------------------------------------------------------------
 VDP0LatchHCounter:
 ;@----------------------------------------------------------------------------
 	ldr vdpptr,=VDP0
 	b VDPLatchHCounter
 
+#ifdef NDS
+	.section .itcm, "ax", %progbits		;@ For the NDS ARM9
+#elif GBA
+	.section .iwram, "ax", %progbits	;@ For the GBA
+#else
+	.section .text						;@ For everything else
+#endif
+	.align 2
 ;@----------------------------------------------------------------------------
 VDP0VCounterR:
 ;@----------------------------------------------------------------------------
@@ -2021,6 +2079,12 @@ VDP0CtrlMDW:
 	b VDPCtrlMDW
 
 ;@----------------------------------------------------------------------------
+#ifdef GBA
+	.section .ewram, "ax", %progbits	;@ For the GBA
+#else
+	.section .text						;@ For anything else
+#endif
+	.align 2
 
 ;@----------------------------------------------------------------------------
 
@@ -2034,7 +2098,7 @@ paletteMask:		.long 0x7FFF
 
 gfxState:
 yStart:				.byte 0
-SPRS:				.byte 1		;@ SpriteScanning On/Off
+SPRS:				.byte 0		;@ SpriteScanning On/Off
 				.byte 0
 				.byte 0
 GFX_DISPCNT:
@@ -2045,14 +2109,23 @@ GFX_BG1CNT:
 	.short 0
 
 
-#ifdef GBA
-	.section .sbss				;@ This is EWRAM on GBA with devkitARM
+#ifdef NDS
+	.section .sbss				;@ This is DTCM on NDS with devkitARM
+#elif GBA
+	.section .bss				;@ This is IWRAM on GBA with devkitARM
 #else
 	.section .bss
 #endif
 	.align 2
 VDP0:
 	.space vdpSize
+
+#ifdef GBA
+	.section .sbss				;@ This is EWRAM on GBA with devkitARM
+#else
+	.section .bss
+#endif
+	.align 2
 VDPRAM:
 	.space 0x4000
 	.size VDPRAM, 0x4000

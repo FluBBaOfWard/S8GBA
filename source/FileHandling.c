@@ -32,6 +32,7 @@ void applyConfigData(void) {
 	gColorValue  = (cfg.gammaValue >> 4) & 0x7;
 	sleepTime    = cfg.sleepTime;
 	joyCfg       = (joyCfg & ~0x400) | ((cfg.controller & 1) << 10);
+	VDP0SetSprScan(SPRS);
 }
 
 void updateConfigData(void) {
@@ -50,13 +51,13 @@ void updateConfigData(void) {
 void initSettings(void) {
 	memset(&cfg, 0, sizeof(cfg));
 	cfg.emuSettings = AUTOPAUSE_EMULATION | AUTOLOAD_NVRAM | AUTOSLEEP_OFF | ENABLE_LIVE_UI;
-	cfg.sprites     = 1;		// SpriteScanning On/Off;
+	cfg.sprites     = 0;		// SpriteScanning On/Off;
 	cfg.glasses     = 1;
 	cfg.config      = 0x80;		// config, bit 7=BIOS on/off, bit 6=X as GG Start, bit 5=Select as Reset, bit 4=R as FastForward
 	cfg.scaling     = SCALED;
 	cfg.flicker     = 1;
 	cfg.gammaValue  = 0x40;		// ColorValue = 4
-	cfg.sleepTime   = 60*60*5;
+	cfg.sleepTime   = 0x7F000000;	// 360 days...
 
 	applyConfigData();
 }

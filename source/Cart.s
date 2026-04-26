@@ -1,5 +1,6 @@
 #ifdef __arm__
 
+#include "Shared/gba_asm.h"
 #include "Shared/EmuSettings.h"
 #include "Equates.h"
 #include "ARMZ80/ARMZ80mac.h"
@@ -96,12 +97,13 @@ rawRom:
 //	.incbin "sms/FM_Tool.sms"
 //	.incbin "sms/Gauntlet (UE) [!].sms"
 //	.incbin "sms/Jang Pung II [SMS-GG] (KR).sms"
-	.incbin "sms/Master of Darkness (UE) [!].sms"
+//	.incbin "sms/Master of Darkness (UE) [!].sms"
 //	.incbin "sms/MD6ButtonTest.sms"
 //	.incbin "sms/Out Run.sms"
 //	.incbin "sms/PGA Tour Golf (UE) [!].sms"
 //	.incbin "sms/Phantasy Star (JP).sms"
 //	.incbin "sms/Phantasy Star [v3].sms"
+//	.incbin "sms/Phantasy Star [v3] speedhack.sms"
 //	.incbin "sms/Pit Fighter (UE) [!].sms"
 //	.incbin "sms/Robocop Vs. Terminator (UE) [!].sms"
 //	.incbin "sms/Running Battle (UE) [!].sms"
@@ -157,6 +159,10 @@ machineInit: 					;@ Called from C
 	.type   machineInit STT_FUNC
 ;@----------------------------------------------------------------------------
 	stmfd sp!,{z80ptr,lr}
+	mov r0,#0x0014				;@ 3/1 wait state
+	ldr r1,=REG_WAITCNT
+	strh r0,[r1]
+
 #ifdef EMBEDDED_ROM
 	ldr r3,=rawBios
 	str r3,g_BIOSBASE_US
@@ -316,6 +322,7 @@ isSGRam:
 	str r8,[r6,r0,lsl#2]		;@ WrMem
 
 
+	bl copyCartToVRAM
 	ldrb r1,gConfig
 	tst r1,#0x80				;@ BIOS on/off
 	cmpne r9,#HW_SG1000
@@ -558,9 +565,26 @@ headerCheckExit:
 	ldmfd sp!,{r3}
 	bx lr
 ;@----------------------------------------------------------------------------
+copyCartToVRAM:
+;@----------------------------------------------------------------------------
+	stmfd sp!,{lr}
+
+	ldr r0,=ROMCOPY				;@ destination
+	ldr r1,cartBase				;@ source
+	mov r2,#0x8000				;@ size
+	bl memcpy
+
+//	ldr r0,=ROMCOPY+0x8000		;@ destination
+//	ldr r1,=0xFDFDFDFD			;@ value
+//	mov r2,#0x800/4				;@ size
+//	bl memset_
+
+	ldmfd sp!,{lr}
+	bx lr
+;@----------------------------------------------------------------------------
 fillROMBANKMAP:
 ;@----------------------------------------------------------------------------
-	stmfd sp!,{r2-r4,lr}
+	stmfd sp!,{r3-r4,lr}
 
 	ldr r3,romBase				;@ Get rom base
 	ldr r2,romMask				;@ romMask=romsize-1
@@ -574,7 +598,18 @@ tbLoop0:
 	subs r0,r0,#1
 	bpl tbLoop0
 
-	ldmfd sp!,{r2-r4,lr}
+	ldr r1,biosBase
+	cmp r3,r1
+	beq tb0End
+	ldr r1,=ROMCOPY
+	mov r0,#0x3
+tbLoop2:
+	str r1,[r4],#4
+	add r1,r1,#0x2000
+	subs r0,r0,#1
+	bpl tbLoop2
+tb0End:
+	ldmfd sp!,{r3-r4,lr}
 	bx lr
 
 ;@----------------------------------------------------------------------------
@@ -1380,6 +1415,8 @@ EMU_RAM:
 WRAP_RAM:						;@ Fix for "Aerial Assault [v0].gg" which jump to $FFFx and then goes from $FFFF to $0000
 	.space 8
 EMU_SRAM:
+	.space 0x8000
+ROMCOPY:
 	.space 0x8000
 DISABLEDMEM:
 	.space 0x400

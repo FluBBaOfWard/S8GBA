@@ -40,7 +40,7 @@ GRAPHICS	:=	graphics \
 # options for code generation
 #---------------------------------------------------------------------------------
 ARCH	:=	-mthumb -mthumb-interwork -march=armv4t -mcpu=arm7tdmi -mtune=arm7tdmi
-FLAGS	:=	-DGBA -DZ80_LARGE_MAP -DZ80_FAST -DZ80_USE_FAST_MEM
+FLAGS	:=	-DGBA -DZ80_LARGE_MAP -DZ80_FAST -DZ80_DIRECT_MEM -DZ80_USE_FAST_MEM
 
 ifeq ($(DEBUG),1)
 	CFLAGS	:=	-gdwarf-2 -Wall -ffast-math $(ARCH)

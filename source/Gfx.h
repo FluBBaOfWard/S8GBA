@@ -35,6 +35,7 @@ void setupScaling(void);
 void VDP0ApplyScaling(void);
 void VDP0SetMode(void);
 void VDP0ScanlineBPReset(void);
+void VDP0SetSprScan(bool enable);
 
 #ifdef __cplusplus
 } // extern "C"

@@ -109,8 +109,6 @@ cart2Write:					;@ Write Cart2 address (error)
 ;@----------------------------------------------------------------------------
 ram_W:						;@ Write ram ($0000-$FFFF)
 ;@----------------------------------------------------------------------------
-//	ldr r2,=EMU_RAM
-//	strb r0,[r2,addy]
 	and r1,addy,#MEM_BANK_MASK
 	add r2,z80ptr,#z80MemTbl
 	ldr r1,[r2,r1,lsr#MEM_BANK_SHIFT]

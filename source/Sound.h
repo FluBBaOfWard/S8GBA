@@ -12,8 +12,7 @@ extern u8 soundMode;
 
 void soundInit(void);
 void soundSetFrequency(void);
-void setMuteSoundGUI(void);
-void vblSound2(void);
+void soundSetMuteGUI(void);
 
 #ifdef __cplusplus
 } // extern "C"

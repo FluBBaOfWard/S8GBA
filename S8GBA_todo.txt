@@ -1,6 +1,7 @@
 S8DS To do
 ------------
 
+	Fix screen on/off.
 	Make sure Region is saved in settings. #13
 	Save region & machine?
 	Games that crash the emulator when machine is set to 'auto' :

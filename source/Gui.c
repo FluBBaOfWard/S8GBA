@@ -16,7 +16,7 @@
 #include "SegaVDP/Version.h"
 #include "SN76496/Version.h"
 
-#define EMUVERSION "V1.1.8 2026-03-29"
+#define EMUVERSION "V1.1.8 2026-04-26"
 
 static void gammaChange(void);
 static void machineSet(void);
@@ -28,19 +28,33 @@ static const char *getSoundText(void);
 static void stepFrameUI(void);
 static void scalingSet(void);
 static const char *getScalingText(void);
+static void colorSet(void);
+static const char *getColorText(void);
 static void borderSet(void);
+static const char *getBorderText(void);
+
 static void controllerSet(void);
 static const char *getControllerText(void);
 static void swapABSet(void);
 static const char *getSwapABText(void);
+static void rffSet(void);
+static const char *getRffText(void);
+static void joypadSet(void);
+static const char *getJoypadText(void);
+static void selectSet(void);
+static const char *getSelectText(void);
+
 static void bgrLayerSet(void);
 static const char *getBgrLayerText(void);
 static void sprLayerSet(void);
 static const char *getSprLayerText(void);
 static void spriteSet(void);
+static const char *getSpriteText(void);
 static void glassesSet(void);
+static const char *getGlassesText(void);
 
 static void countrySet(void);
+static const char *getCountryText(void);
 
 static void updateGameInfo(void);
 
@@ -72,17 +86,21 @@ const MItem ctrlItems[] = {
 	{"A Autofire: ", autoASet, getAutoAText},
 	{"Controller: ", controllerSet, getControllerText},
 	{"Swap A-B:   ", swapABSet, getSwapABText},
+	{"Joypad Type: ", joypadSet, getJoypadText},
+	{"Use Select as Reset: ", selectSet, getSelectText},
+	{"Use R as FastForward: ", rffSet, getRffText},
 };
 const MItem displayItems[] = {
 	{"Display: ", scalingSet, getScalingText},
 	{"Scaling: ", flickSet, getFlickText},
 	{"Gamma: ", gammaChange, getGammaText},
-	{"GG Border:", borderSet},
-	{"Perfect Sprites:", spriteSet},
-	{"3D Display:", glassesSet},
+	{"Color: ", colorSet, getColorText},
+	{"GG Border: ", borderSet, getBorderText},
+	{"Perfect Sprites: ", spriteSet, getSpriteText},
+	{"3D Display: ", glassesSet, getGlassesText},
 };
 const MItem machineItems[] = {
-	{"Region:", countrySet},
+	{"Region: ", countrySet, getCountryText},
 	{"Machine: ", machineSet, getMachineText},
 	{"Cpu Speed Hacks: ", speedHackSet, getSpeedHackText},
 	{"Sound: ", soundSet, getSoundText},
@@ -125,12 +143,14 @@ const Menu *const menus[] = {&menu0, &menu1, &menu2, &menu3, &menu4, &menu5, &me
 
 EWRAM_BSS char gameInfoString[32];
 
-char *const ctrlTxt[]   = {"1P","2P"};
-char *const dispTxt[]   = {"Unscaled","Scaled"};
+const char *const ctrlTxt[]   = {"1P", "2P"};
+const char *const dispTxt[] = {"Unscaled", "Scaled to fit", "Scaled to aspect"};
 
 const char *const machTxt[] = {"Auto", "SG-1000", "SC-3000", "OMV", "SG-1000 II", "Mark III", "Master System", "Master System 2", "Game Gear", "Mega Drive", "Coleco", "MSX", "Sord M5"};
-const char *const bordTxt[]  = {"Black", "Border Color", "None"};
+const char *const bordTxt[] = {"Black", "Border Color", "None"};
 const char *const cntrTxt[] = {"Auto", "US (NTSC)", "Europe (PAL)", "Japan (NTSC)"};
+const char *const joypadTxt[] = {"Auto", "SMS 2 Buttton", "MD 3 Button", "MD 6 Button"};
+const char *const biosTxt[] = {"Off", "Auto"};
 
 /// This is called at the start of the emulator
 void setupGUI() {
@@ -256,13 +276,42 @@ const char *getSwapABText() {
 	return autoTxt[(joyCfg>>10)&1];
 }
 
+void rffSet() {
+	gConfigSet ^= 0x10;
+	settingsChanged = 1;
+}
+const char *getRffText() {
+	return autoTxt[(gConfigSet>>4)&1];
+}
+void joypadSet() {
+	inputHW++;
+	if (inputHW >= 3) {
+		inputHW = 0;
+	}
+}
+const char *getJoypadText() {
+	return joypadTxt[inputHW&3];
+}
+
+void selectSet() {
+	gConfigSet ^= 0x20;
+}
+const char *getSelectText() {
+	return autoTxt[(gConfigSet>>5)&1];
+}
+
 /// Turn on/off scaling
 void scalingSet(){
-	gScaling ^= 0x01;
-//	refreshGfx();
+//	gScaling ^= 0x01;
+	gScalingSet++;
+	if (gScalingSet >= 3) {
+		gScalingSet = 0;
+	}
+	setupScaling();
+	VDP0ApplyScaling();
 }
 const char *getScalingText() {
-	return dispTxt[gScaling];
+	return dispTxt[gScalingSet];
 }
 
 /// Change gamma (brightness)
@@ -282,6 +331,9 @@ void colorSet() {
 	mapSGPalette(gGammaValue);
 	paletteTxAll();					// Make new palette visible
 }
+const char *getColorText() {
+	return brighTxt[gColorValue];
+}
 
 void borderSet() {
 	bColor++;
@@ -289,6 +341,9 @@ void borderSet() {
 		bColor = 0;
 	}
 	makeBorder();
+}
+const char *getBorderText() {
+	return bordTxt[bColor];
 }
 
 /// Turn on/off rendering of background
@@ -308,10 +363,17 @@ const char *getSprLayerText() {
 
 void spriteSet() {
 	SPRS ^= 1;
+	VDP0SetSprScan(SPRS);
+}
+const char *getSpriteText() {
+	return autoTxt[SPRS & 1];
 }
 
 void glassesSet() {
 	g3DEnable ^= 1;
+}
+const char *getGlassesText() {
+	return biosTxt[g3DEnable & 1];
 }
 
 void countrySet() {
@@ -330,6 +392,9 @@ void countrySet() {
 	setupScaling();
 	VDP0ApplyScaling();
 	VDP0SetMode();
+}
+const char *getCountryText() {
+	return cntrTxt[gRegion];
 }
 
 void machineSet() {

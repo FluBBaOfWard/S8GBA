@@ -26,7 +26,7 @@ Check your roms!
 
 ## How to use
 
-On Windows run NGPGBA.exe to add roms to the emulator, you can also add a real bios.
+On Windows run S8GBA.exe to add roms to the emulator, you can also add a real bios.
 Do no overwrite the original .gba file!
 On other platforms you can use the [HTML Builder](https://flubbaofward.github.io/S8GBA/Builder.html).
 
@@ -77,8 +77,6 @@ Now you can use the cross to navigate the menus, A to select an option, B to
   * Select Export Bios: Browse for export bios.
   * Select Japanese Bios: Browse for japanese bios.
   * Select GameGear Bios: Browse for GameGear bios.
-  * Select Coleco Bios: Browse for Coleco bios.
-  * Select MSX Bios: Browse for MSX bios.
 
 ### Settings
 

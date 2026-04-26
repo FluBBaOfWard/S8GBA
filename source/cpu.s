@@ -24,6 +24,27 @@
 	.syntax unified
 	.arm
 
+#ifdef NDS
+	.section .itcm, "ax", %progbits		;@ For the NDS ARM9
+#elif GBA
+	.section .iwram, "ax", %progbits	;@ For the GBA
+#else
+	.section .text						;@ For everything else
+#endif
+	.align 2
+;@----------------------------------------------------------------------------
+SMSFrameRun:
+	stmfd sp!,{lr}
+SMSFrameLoop:
+	ldr vdpptr,=VDP0
+	bl VDPDoScanline
+	cmp r0,#0
+	ldmfdne sp!,{pc}
+	mov r0,#CYCLE_PSL
+	bl Z80RunXCycles
+	b SMSFrameLoop
+;@----------------------------------------------------------------------------
+
 #ifdef GBA
 	.section .ewram, "ax", %progbits	;@ For the GBA
 #else
@@ -65,8 +86,7 @@ runStart:
 	add r0,z80ptr,#z80Regs
 	ldmia r0,{z80f-z80pc,z80sp}	;@ Restore Z80 state
 
-	mov lr,pc
-	ldr pc,selectedFrameRun
+	bl SMSFrameRun
 ;@----------------------------------------------------------------------------
 FrameLoopEnd:
 	add r0,z80ptr,#z80Regs
@@ -94,24 +114,11 @@ FrameLoopEnd:
 	b runStart
 
 ;@----------------------------------------------------------------------------
-selectedFrameRun:	.long SMSFrameRun
 scanlineCycles:		.long CYCLE_PSL
 waitCountIn:		.byte 0
 waitMaskIn:			.byte 0
 waitCountOut:		.byte 0
 waitMaskOut:		.byte 0
-
-;@----------------------------------------
-SMSFrameRun:
-	stmfd sp!,{lr}
-SMSFrameLoop:
-	ldr vdpptr,=VDP0
-	bl VDPDoScanline
-	cmp r0,#0
-	ldmfdne sp!,{pc}
-	ldr r0,scanlineCycles
-	bl Z80RunXCycles
-	b SMSFrameLoop
 
 ;@----------------------------------------------------------------------------
 stepFrame:					;@ Return after 1 frame
@@ -124,8 +131,7 @@ stepFrame:					;@ Return after 1 frame
 ;@----------------------------------------------------------------------------
 s8StepLoop:
 ;@----------------------------------------------------------------------------
-	mov lr,pc
-	ldr pc,selectedFrameRun
+	bl SMSFrameRun
 ;@----------------------------------------------------------------------------
 	add r0,z80ptr,#z80Regs
 	stmia r0,{z80f-z80pc,z80sp}	;@ Save Z80 state
@@ -147,9 +153,6 @@ cpuReset:		;@ Called by loadCart/resetGame
 	addeq r0,r0,r0,lsr#1
 	str r0,scanlineCycles
 
-
-//	adr r0,SMSFrameRun
-//	str r0,selectedFrameRun
 
 	ldr r0,=Z80OpTable
 	mov r1,#0					;@ SMS

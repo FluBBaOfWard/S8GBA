@@ -5,13 +5,13 @@ S8DS To do
 	Make sure Region is saved in settings. #13
 	Save region & machine?
 	Games that crash the emulator when machine is set to 'auto' :
-	Master of darkness
+	Master of Darkness
 	Vampire
-	Dragon's trap
-	Ninja gaiden
-	AK miracle world (jap)
-	AK shinobi world
-	Makai retsuden
+	Dragon's Trap
+	Ninja Gaiden
+	AK Miracle World (jap)
+	AK Shinobi World
+	Makai Retsuden
 
 	Update sound more often? See NitroSwan.
 
@@ -29,7 +29,6 @@ S8DS To do
 
 Misc:
 	Add loadCard for SMS1/MD.
-	Terebi Oekaki/Graphic Board support?
 	Light Phaser support?
 	Add SMS(J) as options in machine?
 	ActionReplay/GameGenie support?
@@ -40,7 +39,6 @@ Misc:
 	Check 2player in F-16 Fightin Falcon (J).
 
 GUI:
-	Show cart/card inserted/ejected.
 
 Sound:
 	Pitch is wrong?

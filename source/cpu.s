@@ -41,8 +41,8 @@ SMSFrameLoop:
 	cmp r0,#0
 	ldmfdne sp!,{pc}
 	mov r0,#CYCLE_PSL
-	bl Z80RunXCycles
-	b SMSFrameLoop
+	adr lr, SMSFrameLoop
+	b Z80RunXCycles
 ;@----------------------------------------------------------------------------
 
 #ifdef GBA

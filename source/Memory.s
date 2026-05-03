@@ -109,15 +109,14 @@ cart2Write:					;@ Write Cart2 address (error)
 ;@----------------------------------------------------------------------------
 ram_W:						;@ Write ram ($0000-$FFFF)
 ;@----------------------------------------------------------------------------
-	and r1,addy,#MEM_BANK_MASK
-	add r2,z80ptr,#z80MemTbl
-	ldr r1,[r2,r1,lsr#MEM_BANK_SHIFT]
+	mvn r1,addy,lsr#MEM_BANK_SHIFT+2
+	ldr r1,[z80ptr,r1,lsl#2]
 	strb r0,[r1,addy]
 	bx lr
 ;@----------------------------------------------------------------------------
 ram0_W:						;@ Write ram ($C000-$DFFF)
 ;@----------------------------------------------------------------------------
-	ldr r1,=EMU_RAM-0xC000
+	ldr r1,[z80ptr,#-49*4]
 	strb r0,[r1,addy]
 	bx lr
 ;@----------------------------------------------------------------------------
@@ -126,13 +125,15 @@ ram1_W:						;@ Write ram ($E000-$FFFF), mirror.
 	ldr r1,=BankMap4
 	ldrb r1,[r1]
 	tst r1,#0x08				;@ BIOS?
-	ldrne r1,=EMU_RAM-0xE000	;@ Skip forward to write with BankSwitch.
+//	ldrne r1,=EMU_RAM-0xE000	;@ Skip forward to write with BankSwitch.
+	ldrne r1,[z80ptr,#-57*4]
 	strbne r0,[r1,addy]
 	bxne lr
 ;@----------------------------------------------------------------------------
 ram1S_W:					;@ Write ram ($E000-$FFFF), mirror. Bankswitch
 ;@----------------------------------------------------------------------------
-	ldr r1,=EMU_RAM-0xE000
+//	ldr r1,=EMU_RAM-0xE000
+	ldr r1,[z80ptr,#-57*4]
 	strb r0,[r1,addy]
 	mov r1,#0x00080000
 	adds r1,r1,addy,lsl#16
@@ -191,7 +192,8 @@ ram4k_W:					;@ Write ram (Sord M5 $7000-$7FFF)
 ;@----------------------------------------------------------------------------
 sram0_W:					;@ Write sram bank0 ($8000-$BFFF)
 ;@----------------------------------------------------------------------------
-	ldr r1,=EMU_SRAM-0x8000
+//	ldr r1,=EMU_SRAM-0x8000
+	ldr r1,[z80ptr,#-33*4]
 	strb r0,[r1,addy]
 	bx lr
 ;@----------------------------------------------------------------------------
@@ -204,9 +206,8 @@ sram1_W:					;@ Write sram bank1 ($8000-$BFFF),($C000-$FFFF)
 ;@----------------------------------------------------------------------------
 rom_R:						;@ Rom read
 ;@----------------------------------------------------------------------------
-	and r1,addy,#MEM_BANK_MASK
-	add r2,z80ptr,#z80MemTbl
-	ldr r1,[r2,r1,lsr#MEM_BANK_SHIFT]
+	mvn r1,addy,lsr#MEM_BANK_SHIFT+2
+	ldr r1,[z80ptr,r1,lsl#2]
 	ldrb r0,[r1,addy]
 	bx lr
 ;@----------------------------------------------------------------------------

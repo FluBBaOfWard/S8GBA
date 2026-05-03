@@ -86,6 +86,9 @@ int main(int argc, char **argv) {
 		if (!pauseEmulation) {
 			run();
 		}
+//		else {
+//			antWars();
+//		}
 		checkTimeOut();
 	}
 }

@@ -7,6 +7,7 @@
 #include "SegaVDP/SegaVDP.i"
 
 #define EMBEDDED_ROM
+	.equ ROMCOPY, BG_GFX+0xC000			;@ 0x8000
 
 	.global machineInit
 	.global loadCart
@@ -102,7 +103,7 @@ rawRom:
 //	.incbin "sms/Out Run.sms"
 //	.incbin "sms/PGA Tour Golf (UE) [!].sms"
 //	.incbin "sms/Phantasy Star (JP).sms"
-//	.incbin "sms/Phantasy Star [v3].sms"
+	.incbin "sms/Phantasy Star [v3].sms"
 //	.incbin "sms/Phantasy Star [v3] speedhack.sms"
 //	.incbin "sms/Pit Fighter (UE) [!].sms"
 //	.incbin "sms/Robocop Vs. Terminator (UE) [!].sms"
@@ -619,26 +620,13 @@ initMapper:					;@ Rom paging..
 	add r1,z80ptr,#z80WriteTbl
 
 	ldr r0,[r2]
-	str r0,[r1],#4				;@ Z80MemWriteTbl, WRITE_ROM
-	str r0,[r1],#4				;@ Z80MemWriteTbl
-	str r0,[r1],#4				;@ Z80MemWriteTbl
-	str r0,[r1],#4				;@ Z80MemWriteTbl
-	str r0,[r1],#4				;@ Z80MemWriteTbl
-	str r0,[r1],#4				;@ Z80MemWriteTbl
+	str r0,[r1],#4				;@ Z80WriteTbl, WRITE_ROM
+	str r0,[r1],#4				;@ Z80WriteTbl
+	str r0,[r1],#4				;@ Z80WriteTbl
+	str r0,[r1],#4				;@ Z80WriteTbl
+	str r0,[r1],#4				;@ Z80WriteTbl
+	str r0,[r1],#4				;@ Z80WriteTbl
 
-
-	ldr r2,=RDMEMTBL_
-	add r1,z80ptr,#z80ReadTbl
-
-	ldr r0,[r2]
-	str r0,[r1],#4				;@ Z80MemReadTbl, READ_ROM
-	str r0,[r1],#4				;@ Z80MemReadTbl
-	str r0,[r1],#4				;@ Z80MemReadTbl
-	str r0,[r1],#4				;@ Z80MemReadTbl
-	str r0,[r1],#4				;@ Z80MemReadTbl
-	str r0,[r1],#4				;@ Z80MemReadTbl
-	str r0,[r1],#4				;@ Z80MemReadTbl
-	str r0,[r1],#4				;@ Z80MemReadTbl
 	bx lr
 ;@----------------------------------------------------------------------------
 WRAMEnable:					;@ Internal RAM enable/disable.
@@ -650,10 +638,10 @@ WRAMEnable:					;@ Internal RAM enable/disable.
 	tst r0,#0x10
 	ldrne r0,[r2]
 	ldreq r0,[r2,#3*4]
-	str r0,[r1,#6*4]			;@ Z80MemWriteTbl, WRITE_RAM
+	str r0,[r1,#6*4]			;@ Z80WriteTbl, WRITE_RAM
 	ldreq r0,[r2,#4*4]
-	str r0,[r1,#7*4]			;@ Z80MemWriteTbl, WRITE_RAM mirror
-	add r1,z80ptr,#z80MemTbl+48*4
+	str r0,[r1,#7*4]			;@ Z80WriteTbl, WRITE_RAM mirror
+	add r1,z80ptr,#z80MemTbl+15*4	;@ !!! This is the inverted adr
 	bne ramDisabled
 
 	ldr r0,[r2,#32+3*4]			;@ MEMMAPTBL_
@@ -669,14 +657,14 @@ WRAMEnable:					;@ Internal RAM enable/disable.
 	beq initRamMapSC3000
 	mov r2,#2
 initM0Loop:
-	str r0,[r1],#4				;@ rommap
-	str r0,[r1],#4				;@ rommap
-	str r0,[r1],#4				;@ rommap
-	str r0,[r1],#4				;@ rommap
-	str r0,[r1],#4				;@ rommap
-	str r0,[r1],#4				;@ rommap
-	str r0,[r1],#4				;@ rommap
-	str r0,[r1],#4				;@ rommap
+	str r0,[r1],#-4				;@ z80MemTbl
+	str r0,[r1],#-4				;@ z80MemTbl
+	str r0,[r1],#-4				;@ z80MemTbl
+	str r0,[r1],#-4				;@ z80MemTbl
+	str r0,[r1],#-4				;@ z80MemTbl
+	str r0,[r1],#-4				;@ z80MemTbl
+	str r0,[r1],#-4				;@ z80MemTbl
+	str r0,[r1],#-4				;@ z80MemTbl
 	sub r0,r0,#0x2000
 	subs r2,r2,#1
 	bne initM0Loop
@@ -685,8 +673,8 @@ initM0Loop:
 initRamMapSC3000:
 	mov r2,#8
 initM1Loop:
-	str r0,[r1],#4				;@ rommap
-	str r0,[r1],#4				;@ rommap
+	str r0,[r1],#-4				;@ z80MemTbl
+	str r0,[r1],#-4				;@ z80MemTbl
 	sub r0,r0,#0x800
 	subs r2,r2,#1
 	bne initM1Loop
@@ -697,7 +685,7 @@ ramDisabled:
 initRamMapSG1000:
 	mov r2,#16
 initM2Loop:
-	str r0,[r1],#4				;@ rommap
+	str r0,[r1],#-4				;@ z80MemTbl
 	sub r0,r0,#0x400
 	subs r2,r2,#1
 	bne initM2Loop
@@ -912,7 +900,6 @@ BankSwitchB_SMS_W:			;@ Switch to BIOS (SMS)
 	cmp r1,r0
 	bxeq lr
 
-
 	ldr r0,biosBase
 	cmp r0,r1
 	ldr r0,BankMap0
@@ -945,116 +932,10 @@ BankSwitchB_GG_W:			;@ Switch to BIOS for 0x0000-0x03FF
 	tst r0,#0x08				;@ BIOS?
 	ldreq r0,biosBase
 	ldrne r0,romBase
-	add r1,z80ptr,#z80MemTbl
-	str r0,[r1]					;@ rommap
+	add r1,z80ptr,#z80MemTbl+63*4
+	str r0,[r1]					;@ z80MemTbl
 	b flush
 
-;@------------------------------------------------------------------------------
-;@						Codemasters mapper stuff
-;@------------------------------------------------------------------------------
-;@------------------------------------------------------------------------------
-reBankSwitch0C_W:			;@ 0x0000-0x3FFF, Codemasters mapper
-;@------------------------------------------------------------------------------
-	ldrb r0,BankMap1
-;@------------------------------------------------------------------------------
-BankSwitch0C_W:				;@ 0x0000-0x3FFF
-;@------------------------------------------------------------------------------
-	strb r0,BankMap1
-	and r0,r0,#0x7F
-	ldrb r1,BankMap4
-	tst r1,#0x08
-	ldreq r1,biosBase
-	ldrne r1,=ROMBANKMAP
-	ldrne r1,[r1,r0,lsl#3]
-	add r2,z80ptr,#z80MemTbl
-	str r1,[r2],#4				;@ rommap
-	ldr r1,=ROMBANKMAP
-	ldr r0,[r1,r0,lsl#3]
-	b Map15k
-;@------------------------------------------------------------------------------
-reBankSwitch1C_W:			;@ 0x4000-0x7FFF, Codemasters mapper
-;@------------------------------------------------------------------------------
-	ldrb r0,BankMap2
-;@------------------------------------------------------------------------------
-BankSwitch1C_W:				;@ 0x4000-0x7FFF
-;@------------------------------------------------------------------------------
-	stmfd sp!,{lr}
-	bl BankSwitch1_W
-	ldmfd sp!,{lr}
-;@------------------------------------------------------------------------------
-reBankSwitch2C_W:			;@ 0x8000-0xBFFF
-;@------------------------------------------------------------------------------
-	ldrb r0,BankMap3
-;@------------------------------------------------------------------------------
-BankSwitch2C_W:				;@ 0x8000-0xBFFF
-;@------------------------------------------------------------------------------
-	strb r0,BankMap3
-	ldrb r1,BankMap2
-	tst r1,#0x80
-	beq BankSwitch2_W			;@ Normal Mapping.
-
-	and r0,r0,#0x7F
-	ldr r1,=ROMBANKMAP
-	ldr r0,[r1,r0,lsl#3]
-	sub r0,r0,#0x8000
-	add r2,z80ptr,#z80MemTbl+32*4
-	stmfd sp!,{lr}
-	mov r1,r0
-	bl Map8k					;@ Only map Rom to 0x8000-0x9FFF
-	ldmfd sp!,{lr}
-
-
-	ldr r2,=MEMMAPTBL_
-	ldr r0,[r2,#20]!
-	ldr r1,[r2,#-8*4]			;@ WRMEMTBL_
-	add r2,z80ptr,#z80WriteTbl+16
-	str r1,[r2,#4]				;@ Z80_memwritetbl
-	add r2,z80ptr,#z80MemTbl+40*4
-	mov r1,r0
-	b Map8k						;@ Only map RAM to 0xA000-0xBFFF
-
-;@------------------------------------------------------------------------------
-BankSwitch0MSX_W:			;@ 0x4000-0x5FFF
-;@------------------------------------------------------------------------------
-	and r0,r0,#0xFF
-	ldr r1,=ROMBANKMAP
-	ldr r0,[r1,r0,lsl#2]
-	sub r0,r0,#0x4000
-	add r2,z80ptr,#z80MemTbl+16*4
-	mov r1,r0
-	b Map8k						;@ Only map Rom to 0x4000-0x5FFF
-;@------------------------------------------------------------------------------
-BankSwitch1MSX_W:			;@ 0x6000-0x7FFF
-;@------------------------------------------------------------------------------
-	and r0,r0,#0xFF
-	ldr r1,=ROMBANKMAP
-	ldr r0,[r1,r0,lsl#2]
-	sub r0,r0,#0x6000
-	add r2,z80ptr,#z80MemTbl+24*4
-	mov r1,r0
-	b Map8k						;@ Only map Rom to 0x6000-0x7FFF
-;@------------------------------------------------------------------------------
-BankSwitch2MSX_W:			;@ 0x8000-0x9FFF
-;@------------------------------------------------------------------------------
-	and r0,r0,#0xFF
-	ldr r1,=ROMBANKMAP
-	ldr r0,[r1,r0,lsl#2]
-	sub r0,r0,#0x8000
-	add r2,z80ptr,#z80MemTbl+32*4
-	mov r1,r0
-	b Map8k						;@ Only map Rom to 0x8000-0x9FFF
-;@------------------------------------------------------------------------------
-BankSwitch3MSX_W:			;@ 0xA000-0xBFFF
-;@------------------------------------------------------------------------------
-	and r0,r0,#0xFF
-	ldr r1,=ROMBANKMAP
-	ldr r0,[r1,r0,lsl#2]
-	sub r0,r0,#0xA000
-	add r2,z80ptr,#z80MemTbl+40*4
-	mov r1,r0
-	b Map8k						;@ Only map Rom to 0xA000-0xBFFF
-
-;@----------------------------------------------------------------------------
 ;@----------------------------------------------------------------------------
 reBankSwitch0_W:			;@ 0x0000-0x3FFF
 ;@----------------------------------------------------------------------------
@@ -1070,8 +951,8 @@ BankSwitch0_W:				;@ 0x0000-0x3FFF
 	ldr r0,[r1,r0,lsl#3]
 	ldreq r1,biosBase
 	ldrne r1,[r1]
-	add r2,z80ptr,#z80MemTbl
-	str r1,[r2],#4				;@ rommap
+	add r2,z80ptr,#z80MemTbl+63*4
+	str r1,[r2],#-4				;@ z80MemTbl
 	b Map15k
 
 ;@----------------------------------------------------------------------------
@@ -1086,7 +967,7 @@ BankSwitch1_W:				;@ 0x4000-0x7FFF
 	ldr r1,=ROMBANKMAP
 	ldr r0,[r1,r0,lsl#3]
 	sub r0,r0,#0x4000
-	add r2,z80ptr,#z80MemTbl+16*4
+	add r2,z80ptr,#z80MemTbl+47*4
 	b Map16k
 
 ;@----------------------------------------------------------------------------
@@ -1126,22 +1007,22 @@ BankSwitch2_W:				;@ 0x8000-0xBFFF
 	ldr r1,[r1]
 doBank2:
 	add r2,z80ptr,#z80WriteTbl+16
-	str r1,[r2],#4				;@ Z80MemWriteTbl
-	str r1,[r2],#4				;@ Z80MemWriteTbl
-	add r2,z80ptr,#z80MemTbl+32*4
+	str r1,[r2],#4				;@ Z80WriteTbl
+	str r1,[r2],#4				;@ Z80WriteTbl
+	add r2,z80ptr,#z80MemTbl+31*4
 Map16k:
-	str r0,[r2],#4				;@ rommap
+	str r0,[r2],#-4				;@ z80MemTbl
 Map15k:
-	str r0,[r2],#4				;@ rommap
+	str r0,[r2],#-4				;@ z80MemTbl
 	mov r1,r0
-	stmia r2!,{r0-r1}			;@ rommap
-	stmia r2!,{r0-r1}			;@ rommap
-	stmia r2!,{r0-r1}			;@ rommap
+	stmda r2!,{r0-r1}			;@ z80MemTbl
+	stmda r2!,{r0-r1}			;@ z80MemTbl
+	stmda r2!,{r0-r1}			;@ z80MemTbl
 Map8k:
-	stmia r2!,{r0-r1}			;@ rommap
-	stmia r2!,{r0-r1}			;@ rommap
-	stmia r2!,{r0-r1}			;@ rommap
-	stmia r2!,{r0-r1}			;@ rommap
+	stmda r2!,{r0-r1}			;@ z80MemTbl
+	stmda r2!,{r0-r1}			;@ z80MemTbl
+	stmda r2!,{r0-r1}			;@ z80MemTbl
+	stmda r2!,{r0-r1}			;@ z80MemTbl
 ;@----------------------------------------------------------------------------
 flush:						;@ Update cpu_pc & lastbank
 ;@----------------------------------------------------------------------------
@@ -1152,13 +1033,116 @@ flush:						;@ Update cpu_pc & lastbank
 ;@----------------------------------------------------------------------------
 Map8k_2:
 	mov r1,r0
-	stmia r2!,{r0-r1}			;@ z80MemMapTbl
-	stmia r2!,{r0-r1}			;@ z80MemMapTbl
-	stmia r2!,{r0-r1}			;@ z80MemMapTbl
-	stmia r2!,{r0-r1}			;@ z80MemMapTbl
+	stmda r2!,{r0-r1}			;@ z80MemTbl
+	stmda r2!,{r0-r1}			;@ z80MemTbl
+	stmda r2!,{r0-r1}			;@ z80MemTbl
+	stmda r2!,{r0-r1}			;@ z80MemTbl
 	bx lr
 ;@----------------------------------------------------------------------------
+;@------------------------------------------------------------------------------
+;@						Codemasters mapper stuff
+;@------------------------------------------------------------------------------
+;@------------------------------------------------------------------------------
+reBankSwitch0C_W:			;@ 0x0000-0x3FFF, Codemasters mapper
+;@------------------------------------------------------------------------------
+	ldrb r0,BankMap1
+;@------------------------------------------------------------------------------
+BankSwitch0C_W:				;@ 0x0000-0x3FFF
+;@------------------------------------------------------------------------------
+	strb r0,BankMap1
+	and r0,r0,#0x7F
+	ldrb r1,BankMap4
+	tst r1,#0x08
+	ldreq r1,biosBase
+	ldrne r1,=ROMBANKMAP
+	ldrne r1,[r1,r0,lsl#3]
+	add r2,z80ptr,#z80MemTbl+63*4
+	str r1,[r2],#-4				;@ z80MemTbl
+	ldr r1,=ROMBANKMAP
+	ldr r0,[r1,r0,lsl#3]
+	b Map15k
+;@------------------------------------------------------------------------------
+reBankSwitch1C_W:			;@ 0x4000-0x7FFF, Codemasters mapper
+;@------------------------------------------------------------------------------
+	ldrb r0,BankMap2
+;@------------------------------------------------------------------------------
+BankSwitch1C_W:				;@ 0x4000-0x7FFF
+;@------------------------------------------------------------------------------
+	stmfd sp!,{lr}
+	bl BankSwitch1_W
+	ldmfd sp!,{lr}
+;@------------------------------------------------------------------------------
+reBankSwitch2C_W:			;@ 0x8000-0xBFFF
+;@------------------------------------------------------------------------------
+	ldrb r0,BankMap3
+;@------------------------------------------------------------------------------
+BankSwitch2C_W:				;@ 0x8000-0xBFFF
+;@------------------------------------------------------------------------------
+	strb r0,BankMap3
+	ldrb r1,BankMap2
+	tst r1,#0x80
+	beq BankSwitch2_W			;@ Normal Mapping.
 
+	and r0,r0,#0x7F
+	ldr r1,=ROMBANKMAP
+	ldr r0,[r1,r0,lsl#3]
+	sub r0,r0,#0x8000
+	add r2,z80ptr,#z80MemTbl+31*4
+	stmfd sp!,{lr}
+	mov r1,r0
+	bl Map8k					;@ Only map Rom to 0x8000-0x9FFF
+	ldmfd sp!,{lr}
+
+
+	ldr r2,=MEMMAPTBL_
+	ldr r0,[r2,#20]!
+	ldr r1,[r2,#-8*4]			;@ WRMEMTBL_
+	add r2,z80ptr,#z80WriteTbl+16
+	str r1,[r2,#4]				;@ Z80_memwritetbl
+	add r2,z80ptr,#z80MemTbl+23*4
+	mov r1,r0
+	b Map8k						;@ Only map RAM to 0xA000-0xBFFF
+
+;@------------------------------------------------------------------------------
+BankSwitch0MSX_W:			;@ 0x4000-0x5FFF
+;@------------------------------------------------------------------------------
+	and r0,r0,#0xFF
+	ldr r1,=ROMBANKMAP
+	ldr r0,[r1,r0,lsl#2]
+	sub r0,r0,#0x4000
+	add r2,z80ptr,#z80MemTbl+47*4
+	mov r1,r0
+	b Map8k						;@ Only map Rom to 0x4000-0x5FFF
+;@------------------------------------------------------------------------------
+BankSwitch1MSX_W:			;@ 0x6000-0x7FFF
+;@------------------------------------------------------------------------------
+	and r0,r0,#0xFF
+	ldr r1,=ROMBANKMAP
+	ldr r0,[r1,r0,lsl#2]
+	sub r0,r0,#0x6000
+	add r2,z80ptr,#z80MemTbl+39*4
+	mov r1,r0
+	b Map8k						;@ Only map Rom to 0x6000-0x7FFF
+;@------------------------------------------------------------------------------
+BankSwitch2MSX_W:			;@ 0x8000-0x9FFF
+;@------------------------------------------------------------------------------
+	and r0,r0,#0xFF
+	ldr r1,=ROMBANKMAP
+	ldr r0,[r1,r0,lsl#2]
+	sub r0,r0,#0x8000
+	add r2,z80ptr,#z80MemTbl+31*4
+	mov r1,r0
+	b Map8k						;@ Only map Rom to 0x8000-0x9FFF
+;@------------------------------------------------------------------------------
+BankSwitch3MSX_W:			;@ 0xA000-0xBFFF
+;@------------------------------------------------------------------------------
+	and r0,r0,#0xFF
+	ldr r1,=ROMBANKMAP
+	ldr r0,[r1,r0,lsl#2]
+	sub r0,r0,#0xA000
+	add r2,z80ptr,#z80MemTbl+23*4
+	mov r1,r0
+	b Map8k						;@ Only map Rom to 0xA000-0xBFFF
 
 ;@----------------------------------------------------------------------------
 Konami4:
@@ -1222,13 +1206,13 @@ BankMSX0_W:					;@ 0x0000-0x3FFF
 	ldrb r1,BankMap0
 	ands r1,r1,#0x03
 
-	ldr r2,=WRMEMTBL_			;@ RAM writeprotection
+	ldr r2,=WRMEMTBL_			;@ RAM write protection
 	ldr r0,[r2,r1,lsl#2]
 	add r2,z80ptr,#z80WriteTbl
 	str r0,[r2,#4*0]
 	str r0,[r2,#4*1]
 
-	add r2,z80ptr,#z80MemTbl
+	add r2,z80ptr,#z80MemTbl+63*4
 	ldr r0,biosBase
 	beq Map16k
 	cmp r1,#0x03
@@ -1256,7 +1240,7 @@ BankMSX1_W:					;@ 0x4000-0x7FFF
 	str r0,[r2,#4*2]
 	str r0,[r2,#4*3]
 
-	add r2,z80ptr,#z80MemTbl+16*4
+	add r2,z80ptr,#z80MemTbl+47*4
 	ldr r0,biosBase
 	beq Map16k
 	cmp r1,#0x0C
@@ -1277,13 +1261,13 @@ BankMSX2_W:					;@ 0x8000-0xBFFF
 	ldrb r1,BankMap0
 	ands r1,r1,#0x30
 
-	ldr r2,=WRMEMTBL_			;@ RAM writeprotection
+	ldr r2,=WRMEMTBL_			;@ RAM write protection
 	ldr r0,[r2,r1,lsr#2]
 	add r2,z80ptr,#z80WriteTbl
 	str r0,[r2,#4*4]
 	str r0,[r2,#4*5]
 
-	add r2,z80ptr,#z80MemTbl+32*4
+	add r2,z80ptr,#z80MemTbl+31*4
 	ldr r0,biosBase				;@ Undefined actually.
 	beq Map16k
 	cmp r1,#0x30
@@ -1304,13 +1288,13 @@ BankMSX3_W:					;@ 0xC000-0xFFFF
 	ldrb r1,BankMap0
 	ands r1,r1,#0xC0
 
-	ldr r2,=WRMEMTBL_			;@ RAM writeprotection
+	ldr r2,=WRMEMTBL_			;@ RAM write protection
 	ldr r0,[r2,r1,lsr#4]
 	add r2,z80ptr,#z80WriteTbl
 	str r0,[r2,#4*6]
 	str r0,[r2,#4*7]
 
-	add r2,z80ptr,#z80MemTbl+48*4
+	add r2,z80ptr,#z80MemTbl+15*4
 	ldr r0,biosBase				;@ Undefined actually
 	beq Map16k
 	cmp r1,#0xC0
@@ -1415,8 +1399,6 @@ EMU_RAM:
 WRAP_RAM:						;@ Fix for "Aerial Assault [v0].gg" which jump to $FFFx and then goes from $FFFF to $0000
 	.space 8
 EMU_SRAM:
-	.space 0x8000
-ROMCOPY:
 	.space 0x8000
 DISABLEDMEM:
 	.space 0x400

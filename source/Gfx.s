@@ -1091,7 +1091,7 @@ tileLoop4_1:
 
 ;@----------------------------------------------------------------------------
 scrolLoop2:
-	ldrb r11,[r5],#1
+	ldrb r11,[r5],#2
 	add r0,r11,r8
 	mov r1,r0
 	mov r9,r0
@@ -1099,7 +1099,7 @@ scrolLoop2:
 	subs r6,r6,r6,lsl#16
 	subcs r6,r6,r6,lsl#16
 	addcs r8,r8,#0x10000
-	adc r5,r5,#0
+	addcs r5,r5,#2
 	adcs r3,r3,#1
 	subcs r8,r8,r7,lsl#16
 	subs r10,r10,#1
@@ -1126,7 +1126,7 @@ vblIrqHandler:
 	add r5,vdpptr,#scrollBuff
 	ldr r4,=yStart
 	ldrsb r4,[r4]
-	add r5,r5,r4
+	add r5,r5,r4,lsl#1
 	adds r3,r3,r4
 	addmi r3,r3,r7
 
@@ -1153,7 +1153,7 @@ noLoop:
 	subs r6,r6,r6,lsl#16
 	movcs r1,#1
 noJump:
-	add r5,r5,r1
+	add r5,r5,r1,lsl#1
 	add r3,r3,r1
 	cmp r1,#0
 	subne r6,r6,r6,lsl#16
@@ -1166,6 +1166,7 @@ noJump:
 	subpl r3,r3,r7
 	subpl r8,r8,r7,lsl#16
 	mov r10,#SCREEN_HEIGHT
+	add r5,r5,#1
 	bl scrolLoop2
 
 	mov r8,#REG_BASE
@@ -1293,10 +1294,6 @@ endFrame:					;@ Called just before screen end (~line 192)	(r0 & r2 safe to use)
 ;@----------------------------------------------------------------------------
 	stmfd sp!,{r1,r3-r11,lr}
 
-//	mov r11,vdpptr
-	ldrb r0,[vdpptr,#vdpNameTable]
-	mov r2,#224
-	bl ntFinnish
 	ldrb r1,[vdpptr,#vdpXScroll]
 	bl VDPReg08W
 	bl bgFinish
@@ -1766,7 +1763,7 @@ bgCont:
 	rsbs r1,r0,#4
 	movmi r1,#0
 	add r8,vdpptr,#TMapBuff
-	ldrb r1,[r8,r1]!
+	ldrb r1,[r8,r1,lsl#1]!
 	ldrb r2,[vdpptr,#vdpHeightMode]
 	cmp r2,#VDPMODE_4_224
 	cmpne r2,#VDPMODE_4_240
@@ -1830,7 +1827,7 @@ bgModeB:
 	ldmfd sp!,{r3-r11,pc}
 
 ;@----------------------------------------------------------------------------
-;@bgChrFinish				;@ End of frame...
+;@bgMapFinish				;@ End of frame...
 ;@----------------------------------------------------------------------------
 ;@	mov r0,#0
 ;@	ldr r7,=0x40004000
@@ -1858,7 +1855,7 @@ bgM2Loop:
 	ldmfd sp!,{r3-r11,pc}
 
 ;@----------------------------------------------------------------------------
-;@bgChrFinish				;@ End of frame...
+;@bgMapFinish				;@ End of frame...
 ;@----------------------------------------------------------------------------
 ;@	mov r0,#0
 ;@	ldr r7,=0x40004000
@@ -1897,7 +1894,7 @@ bgM3Loop:
 #endif
 	.align 2
 ;@----------------------------------------------------------------------------
-;@bgChrFinish				;@ End of frame...
+;@bgMapFinish				;@ End of frame...
 ;@----------------------------------------------------------------------------
 ;@	ldr r5,=0xF000F000
 ;@	ldr r6,=0x000003FF
@@ -1912,7 +1909,7 @@ bgM4Frame:
 	subs r9,r9,#1
 	ldmfdmi sp!,{r3-r11,pc}
 
-	ldrb r1,[r8],#8
+	ldrb r1,[r8],#16
 	ldrb r0,[vdpptr,#vdpNTMask]
 	movs r0,r0,lsr#1
 	and r0,r0,r1,lsr#1

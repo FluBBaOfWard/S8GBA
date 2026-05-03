@@ -2,9 +2,10 @@ S8GBA revision history
 -=-=-=-=-=-=-=-=-=-=-=-
 
 
-V1.1.8 - 2026-04-26 (FluBBa)
+V1.1.8 - 2026-05-03 (FluBBa)
 	Ported NDS DevkitARM version back to GBA.
 	Optimized the SN76496 chip.
+	Optimized the VDP chip.
 
 V1.1.7 - 2023-11-07 (FluBBa)
 	Added new debug menu.

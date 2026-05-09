@@ -29,7 +29,7 @@
 	.global gGfxMask
 	.global GFX_DISPCNT
 	.global GFX_BG0CNT
-	.global GFX_BG1CNT
+	.global GFX_BG3CNT
 	.global vblIrqHandler
 	.global yStart
 	.global SPRS
@@ -276,20 +276,20 @@ clearTileMaps:
 	stmfd sp!,{r4-r6,lr}
 	add r3,vdpptr,#vdpBgrMapOfs0
 	mov r6,#2
-clrtmLoop2:
+clrTmLoop2:
 	ldr r4,[r3],#4
 	mov r0,#BG_GFX
 	add r4,r0,r4,lsl#3
 	mov r5,#2
-clrtmLoop1:
+clrTmLoop1:
 	add r0,r4,#0x700
 	add r4,r4,#0x800
 	mov r1,#0x100/4
 	bl memclr_
 	subs r5,r5,#1
-	bne clrtmLoop1
+	bne clrTmLoop1
 	subs r6,r6,#1
-	bne clrtmLoop2
+	bne clrTmLoop2
 	ldmfd sp!,{r4-r6,pc}
 ;@----------------------------------------------------------------------------
 makeBorder:					;@ Also called from UI.c, r0 = border type.
@@ -297,34 +297,27 @@ makeBorder:					;@ Also called from UI.c, r0 = border type.
 ;@----------------------------------------------------------------------------
 
 	mov r1,#0x00C0				;@ H start-end
-	mov r2,#0x08C0				;@ H start-end
-	mov r12,#0xC000				;@ H start-end Win1
+	mov r2,#0x00C0				;@ H start-end
+	ldr r12,=0xC0F0				;@ H start-end Win1
 
 	ldrb r0,bColor
 	cmp r0,#2
 	beq setBorderValues
 
-	ldr r0,=gMachine
-	ldrb r0,[r0]
-	cmp r0,#HW_GG
-
-	moveq r1,#0x08C0			;@ H start-end
-	ldreq r12,=0xC0F8			;@ H start-end Win1
-
 	ldr r0,=gEmuFlags
 	ldrb r0,[r0]
 	tst r0,#GG_MODE
 
-	ldrne r1,=0x30C0			;@ H start-end
-	ldrne r2,=0x30C0			;@ H start-end
-	ldrne r12,=0xC0D0			;@ H start-end Win1
+	orrne r1,r1,#0x2800			;@ H start-end
+	orrne r2,r2,#0x2800			;@ H start-end
+	ldrne r12,=0xC0C8			;@ H start-end Win1
 setBorderValues:
 	str r1,Window0HValue_normal
 	str r2,Window0HValue_col0
 	str r12,Window1HValue
 	
 	mov r1,#REG_BASE
-	mov r0,#0x0000
+	mov r0,#0x0008
 	strh r0,[r1,#REG_WINOUT]
 
 	bx lr
@@ -386,34 +379,34 @@ loadScaleValues:
 	
 	b buildSpriteScaling
 
-BG_SCALING_TO_FIT:	;@ 1:1, 7:6, 5:4
+BG_SCALING_TO_FIT:				;@ 191->SCREEN_HEIGHT, 224->S_H, 240->S_H
 	.long 0xD560,0xDB6D,0xCCCD
-	.long 0x00C0,0x00C0,0x00C0
+	.long SCREEN_HEIGHT,SCREEN_HEIGHT,SCREEN_HEIGHT
 	.long 0x0000,0x0000,0x0000
 	.long 0x0100,0x0100,0x0080
 BG_SCALING_1_1:
 	.long 0xFFFF,0xFFFF,0xFFFF
-	.long 0x00C0,0x00C0,0x00C0
+	.long SCREEN_HEIGHT,SCREEN_HEIGHT,SCREEN_HEIGHT
 	.long 0x0000,0x0010,0x0018
 	.long 0x0100,0x0100,0x0080
 BG_SCALING_1_1_GG:
 	.long 0xFFFF,0xFFFF,0xFFFF
-	.long 0x18A8,0x18A8,0x18A8
-	.long 0x0000,0x0010,0x0018
+	.long 0x0898,0x0898,0x0898
+	.long 0x0010,0x0020,0x0028
 	.long 0x0100,0x0100,0x0080
 BG_SCALING_ASPECT_PAL:			;@ 192->142, 224->165, 240->177
 	.long 0xBD56,0xBD56,0xBD56
-	.long 0x19A7,0x0DB2,0x00C0
+	.long 0x0900 + SCREEN_HEIGHT-9,SCREEN_HEIGHT,SCREEN_HEIGHT
 	.long    -9,      2,     8
 	.long 0x0150,0x0150,0x00AD
 BG_SCALING_ASPECT_NTSC:			;@ 192->170, 224->199, 240->213, 216->192, 9->8
 	.long 0xE38F,0xE2AB,0xE2AB
-	.long 0x0BB5,0x00C0,0x00C0
+	.long SCREEN_HEIGHT,SCREEN_HEIGHT,SCREEN_HEIGHT
 	.long      5,0x0004,0x000C
 	.long 0x0100,0x0120,0x0090
 BG_SCALING_ASPECT_GG:			;@ 192->160, 216->180, 6->5
 	.long 0xD555,0xD555,0xD555
-	.long 0x10B0,0x07BA,0x06BA
+	.long SCREEN_HEIGHT,SCREEN_HEIGHT,SCREEN_HEIGHT
 	.long      0,    10,    12
 	.long 0x0133,0x0133,0x0092
 BG_SCALING_ASPECT_GGMODE:		;@ 160x144 -> 160x120, 6->5
@@ -425,7 +418,7 @@ BG_SCALING_ASPECT_GGMODE:		;@ 160x144 -> 160x120, 6->5
 BG_SCALING_TBL:
 	.long 0,0,0
 BG_SCALING_WIN:
-	.long 0x00C0,0x00C0,0x00C0
+	.long SCREEN_HEIGHT,SCREEN_HEIGHT,SCREEN_HEIGHT
 BG_SCALING_OFS:
 	.long 0,0,0
 
@@ -1194,6 +1187,12 @@ noJump:
 	orr r3,r3,#0x100			;@ 256 words (1024 bytes)
 	stmia r0,{r1-r3}			;@ DMA3 go
 
+	ldr r0,=selectedMenu
+	ldr r0,[r0]
+	ldrb r4,[vdpptr,#vdpMode1]
+	cmp r0,#0
+	bicne r4,r4,#0x80
+	tst r4,#0x80				;@ Columns 24-31 locked?
 	ldr r2,[vdpptr,#vdpBgrMapOfs1]
 	add r0,r2,#0x0005
 	strh r0,[r8,#REG_BG0CNT]
@@ -1202,22 +1201,22 @@ noJump:
 	ldr r1,[vdpptr,#vdpBgrTileOfs]
 	add r0,r0,r1,lsr#12
 	strh r0,[r8,#REG_BG1CNT]
-//	strh r0,[r8,#REG_BG3CNT]
+	ldreq r0,=GFX_BG3CNT
+	ldrheq r0,[r0]
+	strh r0,[r8,#REG_BG3CNT]
 	add r0,r2,r3,lsr#16
 	strh r0,[r8,#REG_BG2CNT]
 
-	mov r0,#0x001F
+	mov r0,#0x003F
 	ldrb r1,gGfxMask
 	bic r0,r0,r1
 	ldrb r1,[vdpptr,#vdpMode2Bak2]
 	tst r1,#0x40
 	biceq r0,r0,#0x001F			;@ Turn off sprites and bg
 	orr r0,r0,r0,lsl#8
-	bic r0,r0,#0x0008
 
-	ldrb r1,[vdpptr,#vdpMode1]
-	tst r1,#0x80				;@ Columns 24-31 locked?
-	biceq r0,r0,#0x0800
+	tst r4,#0x80				;@ Columns 24-31 locked?
+	bicne r0,r0,#0x0008
 	bicne r0,r0,#0x0300
 
 	strh r0,[r8,#REG_WININ]
@@ -1912,7 +1911,8 @@ bgM4Frame:
 	ldrb r1,[r8],#16
 	ldrb r0,[vdpptr,#vdpNTMask]
 	movs r0,r0,lsr#1
-	and r0,r0,r1,lsr#1
+	orrcs r1,r1,#1
+	ands r0,r0,r1,lsr#1
 	orr r0,lr,r0,lsl#5
 	biccc r0,r0,#0x10
 
@@ -2111,7 +2111,7 @@ GFX_DISPCNT:
 	.long 0
 GFX_BG0CNT:
 	.short 0
-GFX_BG1CNT:
+GFX_BG3CNT:
 	.short 0
 
 

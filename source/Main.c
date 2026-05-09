@@ -155,8 +155,8 @@ static void setupGraphics() {
 			| BG2_ON
 			| BG3_ON
 			| OBJ_ON
-//			| WIN0_ON
-//			| WIN1_ON
+			| WIN0_ON
+			| WIN1_ON
 			;
 	SetMode(GFX_DISPCNT);
 	REG_BG0CNT = TEXTBG_SIZE_256x256 | BG_MAP_BASE(0) | BG_TILE_BASE(2) | BG_PRIORITY(1);
@@ -169,7 +169,8 @@ static void setupGraphics() {
 	REG_WINOUT = 0;
 
 	// Set up background 3 for menu
-	REG_BG3CNT = TEXTBG_SIZE_512x256 | BG_MAP_BASE(6) | BG_TILE_BASE(0) | BG_PRIORITY(0);
+	GFX_BG3CNT = TEXTBG_SIZE_512x256 | BG_MAP_BASE(6) | BG_TILE_BASE(0) | BG_PRIORITY(0);
+	REG_BG3CNT = GFX_BG3CNT;
 	menuMap = MAP_BASE_ADR(6);
 
 //	LZ77UnCompVram(NGPBorderTiles, CHAR_BASE_ADR(1));

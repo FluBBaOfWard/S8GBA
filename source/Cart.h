@@ -25,7 +25,7 @@ extern void *g_BIOSBASE_MSX;
 extern void *g_BIOSBASE_SORDM5;
 
 void machineInit(void);
-void loadCart(int);
+void loadCart(int emuFlags);
 void ejectCart(void);
 
 /**

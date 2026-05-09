@@ -20,7 +20,7 @@ extern SegaVDP VDP0;
 extern u16 EMUPALBUFF[0x200];
 extern u32 GFX_DISPCNT;
 extern u16 GFX_BG0CNT;
-extern u16 GFX_BG1CNT;
+extern u16 GFX_BG3CNT;
 
 void gfxInit(void);
 void vblIrqHandler(void);

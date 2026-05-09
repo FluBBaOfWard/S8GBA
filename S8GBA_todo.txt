@@ -1,8 +1,6 @@
 S8DS To do
 ------------
 
-	Fix screen on/off.
-	Make sure Region is saved in settings. #13
 	Save region & machine?
 	Games that crash the emulator when machine is set to 'auto' :
 	Master of Darkness
@@ -13,10 +11,6 @@ S8DS To do
 	AK Shinobi World
 	Makai Retsuden
 
-	Update sound more often? See NitroSwan.
-
-	Add Casio PV-2000? http://www43.tok2.com/home/cmpslv/Pv2000/EnrPV.htm
-	Add TOMY PuyTa? Tomy Tutor?
 	VDP Test crashes in MegaDrive test?
 	Check size of used SRAM 8kB, 16kB, 24kB & 32kB.
 		Try to save SRAM if it exists?

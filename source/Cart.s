@@ -6,7 +6,7 @@
 #include "ARMZ80/ARMZ80mac.h"
 #include "SegaVDP/SegaVDP.i"
 
-#define EMBEDDED_ROM
+//#define EMBEDDED_ROM
 	.equ ROMCOPY, BG_GFX+0xC000			;@ 0x8000
 
 	.global machineInit
@@ -103,7 +103,7 @@ rawRom:
 //	.incbin "sms/Out Run.sms"
 //	.incbin "sms/PGA Tour Golf (UE) [!].sms"
 //	.incbin "sms/Phantasy Star (JP).sms"
-	.incbin "sms/Phantasy Star [v3].sms"
+//	.incbin "sms/Phantasy Star [v3].sms"
 //	.incbin "sms/Phantasy Star [v3] speedhack.sms"
 //	.incbin "sms/Pit Fighter (UE) [!].sms"
 //	.incbin "sms/Robocop Vs. Terminator (UE) [!].sms"
@@ -143,6 +143,7 @@ rawBios:
 	.incbin "SMS BIOS (US v1.3).sms"
 //	.incbin "SMS (v2.0) [BIOS].sms"
 //	.incbin "SMS BIOS (JP).sms"
+//	.incbin "majbios.gg"
 #endif
 miniBios:
 	.incbin "MiniBios.sms"
@@ -168,6 +169,7 @@ machineInit: 					;@ Called from C
 	ldr r3,=rawBios
 	str r3,g_BIOSBASE_US
 //	str r3,g_BIOSBASE_JP
+//	str r3,g_BIOSBASE_GG
 //	str r3,g_BIOSBASE_COLECO
 //	str r3,g_BIOSBASE_MSX
 //	str r3,g_BIOSBASE_SORDM5

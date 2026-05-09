@@ -1,5 +1,7 @@
 # S8GBA V1.1.8
 
+<img align="right" width="220" src="./logo.png" />
+
 This is a SEGA 8Bit emulator for the Nintendo GBA, it supports the following systems:
 
 	SEGA SG-1000 / SG-1000 II
@@ -65,7 +67,7 @@ Now you can use the cross to navigate the menus, A to select an option, B to
 * Gamma: Lets you change the gamma ("brightness").
 * Color: Lets you change the color.
 * GG Border: Lets you change between black, bordercolor and none.
-* Perfect Sprites: Uses a bit more cpu but is worth it.
+* Perfect Sprites: Uses more cpu.
 * 3D Display: Terminator vs Robocop needs this off.
 
 ### Machine
@@ -94,7 +96,7 @@ Now you can use the cross to navigate the menus, A to select an option, B to
  screen when menu is not active.
 * Emulator on Bottom: Select if top or bottom screen should be used for
  emulator, when menu is active emulator screen is allways on top.
-* Autosleep: Change the autosleep time, also see Sleep. !!!DoesntWork!!!
+* Autosleep: Change the autosleep time, also see Sleep.
 
 ### Debug
 

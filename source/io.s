@@ -309,7 +309,7 @@ ioReset:
 	mov r1,#0xC0
 	cmp r4,#HW_MEGADRIVE
 //	cmpne r4,#HW_MEGATECH		;@ MT "Alien Syndrome" doesn't work with this.
-	moveq r1,#0xE0				;@ Bit 5 is different on MD.
+	orreq r1,#0x20				;@ Bit 5 is different on MD.
 	strb r1,joy1Extra
 	ldrb r0,inputHW
 	cmpeq r0,#0
@@ -333,7 +333,7 @@ ioReset:
 	ldr r3,=gEmuFlags
 	ldrb r3,[r3]
 	tst r3,#GG_MODE
-	addne r4,r4,#8
+	addne r4,r4,#4				;@ HW_GG, GG_MODE
 
 	ldr lr,=io_params
 	ldr r0,[lr,r4,lsl#3]!

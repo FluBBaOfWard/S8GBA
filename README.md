@@ -92,10 +92,6 @@ Now you can use the cross to navigate the menus, A to select an option, B to
 * Autosave Settings: This will save settings when leaving menu if any
  changes are made.
 * Autopause Game: Toggle if the game should pause when opening the menu.
-* Powersave 2nd Screen: If graphics/light should be turned off for the GUI
- screen when menu is not active.
-* Emulator on Bottom: Select if top or bottom screen should be used for
- emulator, when menu is active emulator screen is allways on top.
 * Autosleep: Change the autosleep time, also see Sleep.
 
 ### Debug

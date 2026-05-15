@@ -324,8 +324,8 @@ isSGRam:
 	str r1,[r4,r0,lsl#2]		;@ MemMap
 	str r8,[r6,r0,lsl#2]		;@ WrMem
 
-
 	bl copyCartToVRAM
+
 	ldrb r1,gConfig
 	tst r1,#0x80				;@ BIOS on/off
 	cmpne r9,#HW_SG1000
@@ -604,11 +604,13 @@ tbLoop0:
 	ldr r1,biosBase
 	cmp r3,r1
 	beq tb0End
-	ldr r1,=ROMCOPY
-	mov r0,#0x3
+	ldr r3,=ROMCOPY				;@ Copy of beginning of ROM
+	mov r0,#0xFF
 tbLoop2:
-	str r1,[r4],#4
-	add r1,r1,#0x2000
+	and r1,r0,r2
+	cmp r1,#4
+	addmi r1,r3,r1,lsl#13		;@ 8k banks
+	strmi r1,[r4,r0,lsl#2]
 	subs r0,r0,#1
 	bpl tbLoop2
 tb0End:
@@ -947,8 +949,8 @@ BankSwitch0_W:				;@ 0x0000-0x3FFF
 ;@----------------------------------------------------------------------------
 	strb r0,BankMap1
 	ldrb r1,BankMap4
-	tst r1,#0x08
 	and r0,r0,#0x7F
+	tst r1,#0x08				;@ Bios enabled?
 	ldr r1,=ROMBANKMAP
 	ldr r0,[r1,r0,lsl#3]
 	ldreq r1,biosBase
@@ -965,8 +967,8 @@ reBankSwitch1_W:			;@ 0x4000-0x7FFF
 BankSwitch1_W:				;@ 0x4000-0x7FFF
 ;@----------------------------------------------------------------------------
 	strb r0,BankMap2
-	and r0,r0,#0x7F
 	ldr r1,=ROMBANKMAP
+	and r0,r0,#0x7F
 	ldr r0,[r1,r0,lsl#3]
 	sub r0,r0,#0x4000
 	add r2,z80ptr,#z80MemTbl+47*4
@@ -983,9 +985,8 @@ BankSwitchR_W:				;@ Switch between ROM & RAM for 0x8000
 	tst r0,#0x08				;@ RAM or ROM?
 	beq reBankSwitch2_W
 
-	and r0,r0,#0x04				;@ Bank 0/1?
-
 	ldr r2,=MEMMAPTBL_+20
+	and r0,r0,#0x04				;@ Bank 0/1?
 	ldr r0,[r2,r0]!
 	ldr r1,[r2,#-8*4]			;@ WRMEMTBL_
 	b doBank2
@@ -1001,8 +1002,8 @@ BankSwitch2_W:				;@ 0x8000-0xBFFF
 	tst r1,#8					;@ RAM or ROM?
 	bne reBankSwitchR_W
 
-	and r0,r0,#0x7F
 	ldr r1,=ROMBANKMAP
+	and r0,r0,#0x7F
 	ldr r0,[r1,r0,lsl#3]
 	sub r0,r0,#0x8000
 	ldr r1,=WRMEMTBL_

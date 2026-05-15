@@ -16,7 +16,7 @@
 #include "SegaVDP/Version.h"
 #include "SN76496/Version.h"
 
-#define EMUVERSION "V1.1.8 2026-05-09"
+#define EMUVERSION "V1.1.8 2026-05-15"
 
 static void gammaChange(void);
 static void machineSet(void);
@@ -154,7 +154,7 @@ const char *const biosTxt[] = {"Off", "Auto"};
 
 /// This is called at the start of the emulator
 void setupGUI() {
-//	keysSetRepeat(25, 4);	// Delay, repeat.
+	setRepeat(25, 4);	// Delay, repeat.
 	menu1.itemCount = ARRSIZE(mainItems) - (enableExit?0:1);
 	closeMenu();
 }

@@ -258,7 +258,7 @@ VDP0Reset:
 	str r0,[vdpptr,#vdpBgrMapOfs0]
 	mov r0,#0x0000				;@ BGR map
 	str r0,[vdpptr,#vdpBgrMapOfs1]
-	mov r0,#0x08000				;@ BGR tiles
+	mov r0,#0x04000				;@ BGR tiles
 	str r0,[vdpptr,#vdpBgrTileOfs]
 	mov r0,#0x14000				;@ SPR tiles
 	str r0,[vdpptr,#vdpSprTileOfs]
@@ -703,7 +703,6 @@ transferVRAM:
 	stmfd sp!,{r12,lr}
 	adr r0,tData
 	ldmia r0,{r4-r6}
-//	ldr r4,[vdpptr,#vdpDirtyTilesPtr]
 	add r4,vdpptr,#dirtyTiles
 	ldr r5,[vdpptr,#VRAMPtr]
 	ldr r7,[vdpptr,#vdpBgrTileOfs]
@@ -720,6 +719,7 @@ transferVRAM:
 	ldrb r2,[vdpptr,#vdpMode2]
 	tst r2,#0x40				;@ Screen on?
 	ldmfdeq sp!,{r12,pc}
+	add r7,r7,#0x1800
 	ldr r8,=0x11111111
 	ldrb r2,[vdpptr,#vdpPGOffsetBak1]
 	ldrb r3,[vdpptr,#vdpCTOffset]
@@ -763,7 +763,7 @@ tileLoop0_0:
 	tst r12,#0x01000000
 	addne r1,r1,#0x20
 	bleq tileLoop0_1
-	cmp r1,#0x2000
+	cmp r1,#0x800
 	bne tileLoop0_0
 
 	b tileLoopSpr
@@ -826,7 +826,7 @@ tileLoop2_0:
 	tst r12,#0x04000000
 	addne r1,r1,#0x20
 	bleq tileLoop2_2
-	cmp r1,#0x2000
+	cmp r1,#0x1800
 	bne tileLoop2_0
 
 	b tileLoopSpr
@@ -1033,6 +1033,7 @@ txLoop:
 ;@----------------------------------------------------------------------------
 transferVRAM_m4:
 ;@----------------------------------------------------------------------------
+	add r7,r7,#0x3800
 	ldr r9,=0x20202020			;@ Dirtytiles mode4 bgr & spr
 	mov r1,#0x200
 tl4pre:
@@ -1212,12 +1213,11 @@ noJump:
 	bic r0,r0,r1
 	ldrb r1,[vdpptr,#vdpMode2Bak2]
 	tst r1,#0x40
-	biceq r0,r0,#0x001F			;@ Turn off sprites and bg
+	biceq r0,r0,#0x0017			;@ Turn off sprites and bg
 	orr r0,r0,r0,lsl#8
 
 	tst r4,#0x80				;@ Columns 24-31 locked?
-	bicne r0,r0,#0x0008
-	bicne r0,r0,#0x0300
+	bicne r0,r0,#0x0308
 
 	strh r0,[r8,#REG_WININ]
 
@@ -1709,7 +1709,7 @@ dm2_2:
 	bicne r3,r3,#3				;@ Only even tiles in 16x16 mode
 	strh r3,[r2],#4				;@ Store OBJ Atr 2. Pattern, palette.
 
-	moveq r0,#0x2C0				;@ Double, y=192
+	moveq r0,#0x200+SCREEN_HEIGHT	;@ Double, y=SCREEN_HEIGHT
 	addne r3,r3,#2				;@ Tile+2
 	addne r9,r9,#0x04000000
 	tstne r6,#0x00000200		;@ Zoom?
@@ -1777,26 +1777,24 @@ bgCont:
 	cmp r2,#VDPMODE_5
 	beq bgMode5
 
-	ldr r7,=0x40004000			;@ Palette 4 & tileoffset
+	ldr r7,=0x40C040C0			;@ Palette 4 & tileoffset
 	ldrb r9,[vdpptr,#vdpPGOffsetBak1]
 	and r9,r9,#3
 	eor r9,r9,#3
 	orr r9,r9,r9,lsl#16
 	mov r9,r9,lsl#8
 
-	mov r8,#0
-	cmp r2,#VDPMODE_2
-	ldreq r8,=0x01000100
 	and r1,r1,#0xF
 	add r3,r11,r1,lsl#10
-
 
 	mov r4,r10
 	mov r0,#0
 
 	mov r6,#3
-	cmp r2,#VDPMODE_0
-	cmpne r2,#VDPMODE_2
+	mov r8,#0
+	cmp r2,#VDPMODE_2
+	ldreq r8,=0x01000100
+	cmpne r2,#VDPMODE_0
 	beq bgMode02
 	mov r6,#24
 	cmp r2,#VDPMODE_3
@@ -1840,7 +1838,7 @@ bgM2Loop:
 	ldrh r1,[r3],#2				;@ Read from MasterSystem Tilemap RAM
 	orr r1,r1,r1,lsl#8
 	bic r1,r1,#0xFF00
-	orr r1,r1,r11				;@ Palette & tile offset.
+	add r1,r1,r11				;@ Palette & tile offset.
 
 	str r0,[r4,r8,lsr#12]		;@ Write to NDS/GBA Tilemap RAM, BGR color
 	str r1,[r4,#0x800]			;@ Write to NDS/GBA Tilemap RAM, behind sprites
@@ -1901,9 +1899,7 @@ bgM3Loop:
 ;@ MSB          LSB
 ;@ ---pcvhnnnnnnnnn
 bgMode4:
-	ldr r2,[vdpptr,#vdpBgrTileOfs]
-	and r2,r2,#0x4000
-	orr r2,r2,r2,lsl#16
+	ldr r2,=0x01C001C0
 bgM4Frame:
 	subs r9,r9,#1
 	ldmfdmi sp!,{r3-r11,pc}
@@ -1945,9 +1941,8 @@ bgM4Row:
 	and r1,r0,r5,lsr#3
 	add r0,r0,r1				;@ XY flip + color.
 
-	orr r0,r0,r2,lsr#1
+	add r0,r0,r2				;@ New tile offset
 	str r0,[r4,#0x800]			;@ Write to NDS/GBA Tilemap RAM, behind sprites
-	add r0,r0,r7,lsl#9			;@ New tile offset
 	biccc r0,r0,r6,lsl#16
 	biceq r0,r0,r6
 	str r0,[r4],#4				;@ Write to NDS/GBA Tilemap RAM, in front of sprites

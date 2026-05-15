@@ -447,8 +447,9 @@ refreshEMUjoypads:			;@ Call every frame
 		andcs r1,r1,r2,lsr#16
 	ands r0,r1,#3
 	cmpne r0,#3
-	tstne r2,#0x400				;@ Swap A/B?
 	eorne r0,r0,#3
+	tst r2,#0x400				;@ Swap A/B?
+	andne r0,r1,#3
 	bic r4,r4,#3
 	orr r4,r4,r0
 	and r3,r4,#0xf0
@@ -488,14 +489,14 @@ refreshSMSJoypads:
 noPause:
 	bl refreshArcadeInput
 	adr addy,rlud2durl
-	ldrb r0,[addy,r3,lsr#4]		;@ downupleftright
+	ldrb r0,[addy,r3,lsr#4]		;@ DownUpLeftRight
 
 	orr r0,r0,r4,lsl#4
 	mov r3,r4,lsr#8
 
 	mov r1,#0
 
-	tst r2,#0x40000000			;@ Player2?
+	tst r2,#0x20000000			;@ Player2?
 	strbeq r0,joy0State
 	strbeq r3,joy0Extra
 	strbne r0,joy1State
@@ -548,9 +549,7 @@ refreshColJoypads:
 	ldrb r3,colecoKey
 	orr r1,r1,r3
 
-	tst r2,#0x40000000			;@ Player2?
-	mov r2,#0
-	str r2,joy0State
+	tst r2,#0x20000000			;@ Player2?
 	strbeq r0,joy0State
 	strbne r0,joy1State
 	strbeq r1,joy0Extra
@@ -594,15 +593,15 @@ refreshSM5Joypads:			;@ Call every frame
 refreshArcadeInput:
 ;@----------------------------------------------------------------------------
 	mov r1,#0
-	and r2,r4,#0x0F0
+	and r0,r4,#0x0F0
 	tst r4,#0x008				;@ GBA Start
-	orrne r1,r1,r2,lsr#4
+	orrne r1,r1,r0,lsr#4
 	orrne r1,r1,#0x010
 	tst r4,#0x004				;@ GBA Select
-	orrne r1,r1,r2,lsl#1
+	orrne r1,r1,r0,lsl#1
 	orrne r1,r1,#0x200
 	tst r4,#0x200				;@ GBA L
-	orrne r1,r1,r2,lsl#6
+	orrne r1,r1,r0,lsl#6
 	orrne r1,r1,#0x4000
 	tst r4,#0x100				;@ GBA R
 	orrne r1,r1,#0x8000

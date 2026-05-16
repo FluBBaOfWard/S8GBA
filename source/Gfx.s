@@ -383,7 +383,7 @@ BG_SCALING_TO_FIT:				;@ 191->SCREEN_HEIGHT, 224->S_H, 240->S_H
 	.long 0xD560,0xDB6D,0xCCCD
 	.long SCREEN_HEIGHT,SCREEN_HEIGHT,SCREEN_HEIGHT
 	.long 0x0000,0x0000,0x0000
-	.long 0x0100,0x0120,0x0090
+	.long 0x0100,0x0120,0x0099
 BG_SCALING_1_1:
 	.long 0xFFFF,0xFFFF,0xFFFF
 	.long SCREEN_HEIGHT,SCREEN_HEIGHT,SCREEN_HEIGHT
@@ -424,12 +424,12 @@ BG_SCALING_OFS:
 
 scaleParms:
 	.long 0x0000				;@ Rotate value
-	.long 0x0100				;@ Normal
-	.long 0x0080				;@ Double
+	.long 0x0100				;@ Normal Horizontal
+	.long 0x0080				;@ Double Horizontal
 scaleSprParam:
 	.long 0x0100				;@ Scaled Normal Vertical
 	.long 0x0120				;@ Scaled 8x16 Vertical
-	.long 0x0090				;@ Scaled Double Vertical
+	.long 0x0099				;@ Scaled Double Vertical
 	.long OAMBuffer1+6
 	.long OAM+768+6
 ;@----------------------------------------------------------------------------
@@ -1662,7 +1662,6 @@ sprDMADoM2:					;@ Called from endFrame.
 	ldr r5,bgScaleValue
 	add r5,r5,#1
 
-	tst r6,r6,lsl#11			;@ 16x16 size + scaling?
 	mov r8,#32					;@ Number of sprites
 	cmp r0,#VDPMODE_1
 	beq dm2_3					;@ No sprites in Mode1
@@ -1686,11 +1685,10 @@ dm2_2:
 	ldrsb r3,[r3]
 	sub r0,r0,r3
 
+	movs r3,r6,lsl#6			;@ 16x16 size + scaling?
 	mov r3,#4					;@ Sprites are scaled around the center
-	tst r6,#0x02000000			;@ That's why this is needed
-	movne r3,r3,lsl#1
-	tst r6,#0x04000000
-	movne r3,r3,lsl#1
+	movmi r3,r3,lsl#1			;@ That's why this is needed
+	movcs r3,r3,lsl#1
 	add r0,r0,r3
 
 	mul r0,r5,r0

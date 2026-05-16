@@ -383,7 +383,7 @@ BG_SCALING_TO_FIT:				;@ 191->SCREEN_HEIGHT, 224->S_H, 240->S_H
 	.long 0xD560,0xDB6D,0xCCCD
 	.long SCREEN_HEIGHT,SCREEN_HEIGHT,SCREEN_HEIGHT
 	.long 0x0000,0x0000,0x0000
-	.long 0x0100,0x0100,0x0080
+	.long 0x0100,0x0120,0x0090
 BG_SCALING_1_1:
 	.long 0xFFFF,0xFFFF,0xFFFF
 	.long SCREEN_HEIGHT,SCREEN_HEIGHT,SCREEN_HEIGHT
@@ -864,11 +864,10 @@ tileLoopSpr:				;@ Mode0, 2 & 3 sprites.
 	ldrb r1,[vdpptr,#vdpSPROffset]
 	and r1,r1,#0x07
 	mov r1,r1,lsl#11
-	ldr r4,tData
-	ldr r5,VDPRAMPtr
+	add r4,vdpptr,#dirtyTiles
+	ldr r5,[vdpptr,#VRAMPtr]
 	add r4,r4,r1,lsr#5
-	add r7,r7,#0x400000			;@ Sprites @ 0x06406000
-	sub r7,r7,#0x2000			;@ Sprites @ 0x06406000
+	add r7,r7,#0x10800			;@ Sprites @ 0x06016000
 	sub r7,r7,r1,lsl#2			;@ r1 is later added in the render loop.
 	add r8,r1,#0x800
 tileLoop2_1:
@@ -1667,7 +1666,7 @@ sprDMADoM2:					;@ Called from endFrame.
 	mov r8,#32					;@ Number of sprites
 	cmp r0,#VDPMODE_1
 	beq dm2_3					;@ No sprites in Mode1
-	mov r7,#PRIORITY+0x300
+	mov r7,#PRIORITY+0x300		;@ Tile nr offset
 	mov r1,#0x10000000
 dm2_2:
 	ldr r4,[r10],#4				;@ MasterSystem OBJ, r0=Ypos.
@@ -1676,6 +1675,7 @@ dm2_2:
 	beq dm2_3					;@ Skip the rest if sprite Y=208
 	and r9,r4,#0xFF00
 	and r3,r1,r4,lsr#3			;@ EC early clock, x -=32.
+	add r3,r3,#((GAME_WIDTH-SCREEN_WIDTH)/2)<<23
 	rsb r9,r3,r9,lsl#15
 
 	mov r0,r0,lsr#24

@@ -1,6 +1,6 @@
 //
 //  io.s
-//  S8DS
+//  S8GBA
 //
 //  Created by Fredrik Ahlström on 2005-06-08.
 //  Copyright © 2005-2026 Fredrik Ahlström. All rights reserved.
@@ -860,7 +860,7 @@ setKeypadWrite:				;@ Coleco, 0x80 written?
 	strb r0,joyMode
 	bx lr
 ;@----------------------------------------------------------------------------
-setJoystickWrite:			;@ Coleco, 0x80 written?
+setJoystickWrite:			;@ Coleco, 0xC0 written?
 ;@----------------------------------------------------------------------------
 	mov r0,#0
 	strb r0,joyMode

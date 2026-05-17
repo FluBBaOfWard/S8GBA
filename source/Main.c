@@ -61,7 +61,7 @@ int main(int argc, char **argv) {
 	initSettings();
 	loadSettings();
 	if (initFileHelper(SMSID)) {
-		loadColorBIOS();
+		loadBIOSes();
 	}
 //	checkMachine();
 	machineInit();

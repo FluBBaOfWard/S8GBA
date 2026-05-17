@@ -147,36 +147,25 @@ void selectGame() {
 }*/
 
 //---------------------------------------------------------------------------------
-static int loadBIOS(void *dest) {
-
-	int i;
-	for (i=0; i<3; i++) {
-		const RomHeader *rh = findBios(i);
-		if (rh != NULL && (rh->filesize == 0x10000)) {
-			memcpy(dest, (u8 *)rh + sizeof(RomHeader), 0x10000);
-			return 1;
+void loadBIOSes(void) {
+	const RomHeader *bh;
+	int n = 0;
+	g_BIOSBASE_US = NULL;
+	g_BIOSBASE_JP = NULL;
+	g_BIOSBASE_GG = NULL;
+	while ((bh = findBios(n++))) {
+		if (bh->flags & 0x4) {
+			g_BIOSBASE_GG = (const u8 *)bh + sizeof(RomHeader);
+		}
+		else {
+			if (bh->flags & 0x2) {
+				g_BIOSBASE_JP = (const u8 *)bh + sizeof(RomHeader);
+			}
+			else {
+				g_BIOSBASE_US = (const u8 *)bh + sizeof(RomHeader);
+			}
 		}
 	}
-//	memcpy(dest, (u8 *)rawBios, 0x10000);
-	return 0;
-}
-
-int loadColorBIOS(void) {
-/*	if (loadBIOS(biosSpace)) {
-		g_BIOSBASE_COLOR = biosSpace;
-		return 1;
-	}
-	g_BIOSBASE_COLOR = NULL;
-	return 0;*/
-}
-
-int loadBWBIOS(void) {
-/*	if (loadBIOS(biosSpace)) {
-		g_BIOSBASE_BNW = biosSpace;
-		return 1;
-	}
-	g_BIOSBASE_BNW = NULL;
-	return 0;*/
 }
 
 //---------------------------------------------------------------------------------

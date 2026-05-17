@@ -1,6 +1,6 @@
 //
 //  io.h
-//  S8DS
+//  S8GBA
 //
 //  Created by Fredrik Ahlström on 2005-06-08.
 //  Copyright © 2005-2026 Fredrik Ahlström. All rights reserved.

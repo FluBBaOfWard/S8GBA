@@ -17,12 +17,12 @@ extern u8 gArcadeGameSet;
 
 extern const u8 *romSpacePtr;
 extern u8 EMU_SRAM[0x8000];
-extern void *g_BIOSBASE_US;
-extern void *g_BIOSBASE_JP;
-extern void *g_BIOSBASE_GG;
-extern void *g_BIOSBASE_COLECO;
-extern void *g_BIOSBASE_MSX;
-extern void *g_BIOSBASE_SORDM5;
+extern const void *g_BIOSBASE_US;
+extern const void *g_BIOSBASE_JP;
+extern const void *g_BIOSBASE_GG;
+extern const void *g_BIOSBASE_COLECO;
+extern const void *g_BIOSBASE_MSX;
+extern const void *g_BIOSBASE_SORDM5;
 
 void machineInit(void);
 void loadCart(int emuFlags);

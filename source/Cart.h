@@ -15,7 +15,7 @@ extern u8 gMachine;
 extern u8 gRegion;
 extern u8 gArcadeGameSet;
 
-extern u8 *romSpacePtr;
+extern const u8 *romSpacePtr;
 extern u8 EMU_SRAM[0x8000];
 extern void *g_BIOSBASE_US;
 extern void *g_BIOSBASE_JP;

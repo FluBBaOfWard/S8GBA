@@ -1,10 +1,7 @@
 #ifndef EMUBASE
 #define EMUBASE
 
-#define ENABLE_LIVE_UI		(1<<12)
-
-#define SMSID 0x1A534D53			// "SMS",0x1A
-//#define ROMCOPY 0x0600C000
+#define SMSID 0x1A534D53		// "SMS",0x1A
 
 typedef struct {
 	const u32 identifier;

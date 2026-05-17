@@ -50,7 +50,7 @@ void updateConfigData(void) {
 
 void initSettings(void) {
 	memset(&cfg, 0, sizeof(cfg));
-	cfg.emuSettings = AUTOPAUSE_EMULATION | AUTOLOAD_NVRAM | AUTOSLEEP_OFF | ENABLE_LIVE_UI;
+	cfg.emuSettings = AUTOPAUSE_EMULATION | AUTOLOAD_NVRAM | AUTOSLEEP_OFF;
 	cfg.sprites     = 0;		// SpriteScanning On/Off;
 	cfg.glasses     = 1;
 	cfg.config      = 0x80;		// config, bit 7=BIOS on/off, bit 6=X as GG Start, bit 5=Select as Reset, bit 4=R as FastForward
@@ -101,21 +101,20 @@ void saveState(void) {
 //---------------------------------------------------------------------------------
 bool loadGame(const RomHeader *rh) {
 	if (rh) {
-		return loadROM((const u8 *)rh + sizeof(RomHeader), rh->filesize);
+		return loadROM((const u8 *)rh + sizeof(RomHeader), rh->filesize, rh->flags);
 	}
 	return true;
 }
 
 //---------------------------------------------------------------------------------
-bool loadROM(const u8 *rom, int size) {
+bool loadROM(const u8 *rom, int size, int emuFlags) {
 	selectedGame = selected;
 	cls(0);
 	gRomSize = size;
 	romSpacePtr = rom;
-//	tlcs9000MemInit(romSpacePtr);
 	checkMachine();
 	setEmuSpeed(0);
-	loadCart(0);
+	loadCart(emuFlags);
 	gameInserted = true;
 	if (emuSettings & AUTOLOAD_NVRAM) {
 		loadNVRAM();

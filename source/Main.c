@@ -72,7 +72,7 @@ int main(int argc, char **argv) {
 	else {
 		const PogoFile *pogoFile = getPogoFile();
 		if (pogoFile != NULL) {
-			loadROM(pogoFile->romPtr, pogoFile->size);
+			loadROM(pogoFile->romPtr, pogoFile->size, 0);
 		}
 		else {
 			infoOutput("No roms found.");

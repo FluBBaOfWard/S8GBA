@@ -6,7 +6,7 @@
 typedef struct {
 	const u32 identifier;
 	const u32 filesize;
-	const u32 flags;			// Bit 2 = Color.
+	const u32 flags;			// See Equates.h emuflags.
 	const u32 spritefollow;
 	const u8 bios;				// Bit 0 = Bios.
 	const u8 reserved[15];

@@ -2,14 +2,13 @@
 #include <string.h>
 
 #include "FileHandling.h"
-#include "Emubase.h"
+#include "Equates.h"
 #include "Main.h"
 #include "Shared/EmuMenu.h"
 #include "Shared/EmuSettings.h"
 #include "Shared/FileHelper.h"
 #include "Shared/AsmExtra.h"
 #include "Gui.h"
-#include "Equates.h"
 #include "Cart.h"
 #include "Gfx.h"
 #include "io.h"
@@ -154,11 +153,11 @@ void loadBIOSes(void) {
 	g_BIOSBASE_JP = NULL;
 	g_BIOSBASE_GG = NULL;
 	while ((bh = findBios(n++))) {
-		if (bh->flags & 0x4) {
+		if (bh->flags & GG_MODE) {
 			g_BIOSBASE_GG = (const u8 *)bh + sizeof(RomHeader);
 		}
 		else {
-			if (bh->flags & 0x2) {
+			if (bh->flags & COUNTRY) {
 				g_BIOSBASE_JP = (const u8 *)bh + sizeof(RomHeader);
 			}
 			else {

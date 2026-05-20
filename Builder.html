@@ -139,7 +139,7 @@
 			<ol>
 				<li>Select the GBA emulator file</li>
 				<li>Optionally add a splash screen (240x160 pixels or 3:2 ratio).</li>
-				<li>Add SMS/GG ROM files</li>
+				<li>Add SMS/GG/SG/SC ROM files</li>
 				<li>Click "Build ROM" to create the output</li>
 			</ol>
 		</div>
@@ -155,7 +155,7 @@
 		</div>
 
 		<div class="upload-section">
-			<h3>Select SMS/GG Files</h3>
+			<h3>Select SMS/GG/SG/SC Files</h3>
 			<input type="file" id="additionalFiles" class="file-input" multiple accept=".sms,.gg,.sg,.sc">
 		</div>
 
@@ -241,10 +241,24 @@
 			const files = event.target.files;
 
 			for (const file of files) {
-				if (file.name.toUpperCase().includes( "BIOS")
-						&& file.size === 0x10000) {
+				const lowerName = file.name.toLowerCase();
+				if (lowerName.includes( "bios")) {
 					file.bios = true;
 				}
+				let flags = 0;
+				if (lowerName.includes('(j)')) {
+					flags |= (1<<1); // Flags - set bit 1 for Japan
+				}
+				if (lowerName.endsWith('.gg')) {
+					flags |= (1<<2); // Flags - set bit 2 for gg
+				}
+				else if (lowerName.endsWith('.sg')) {
+					flags |= (1<<3); // Flags - set bit 3 for sg
+				}
+				else if (lowerName.endsWith('.sc')) {
+					flags |= (1<<4); // Flags - set bit 4 for sc
+				}
+				file.flags = flags;
 				selectedFiles.push(file);
 			}
 
@@ -401,7 +415,7 @@
 					const header = createRomHeader(
 					   0x1A534D53, // "SMS",0x1A
 						fileBuffer.byteLength, // File size in bytes
-						fileView.getUint8(0x23) === 0x10 ? 0x04 : 0x00, // Flags - set bit 2 for color
+						file.flags,
 						0x00, // spritefollow
 						file.bios ? 0x01 : 0x00, // bios - set bit 0 for bios files
 						file.name.substring(0, 32) // Name truncated to 32 chars

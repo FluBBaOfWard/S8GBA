@@ -287,8 +287,8 @@ tbLoop1:
 
 	ldr r8,=ram0_W
 	cmp r9,#HW_SG1000
-	cmpne r9,#HW_SGAC
 	cmpne r9,#HW_SG1000II
+	cmpne r9,#HW_SGAC
 	ldreq r8,=ram1k_W			;@ 1k RAM mirrored
 	cmp r9,#HW_SC3000
 	cmpne r9,#HW_OMV

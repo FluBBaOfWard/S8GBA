@@ -138,12 +138,21 @@ rawRom:
 //	.incbin "sg/Q-Bert.sg"
 //	.incbin "sc/Sega Basic Level 2 (JP).sc"
 //	.incbin "sg/SG-1000 M2 Check Program.sg"
+//	.incbin "coleco/Amazing Bumpman (1986) (Telegames).rom"
+//	.incbin "coleco/BC's Quest for Tires II - Grog's Revenge (1984) (32k).rom"
+//	.incbin "coleco/Burgertime (1982-84) (Data East).rom"
+//	.incbin "coleco/Chuck Norris - Super Kicks (1983) (Xonox).rom"
+//	.incbin "coleco/Cosmic Avenger (1982) (Universal).rom"
+//	.incbin "coleco/River Raid (1982-84) (Activision) [!].rom"
+//	.incbin "coleco/Smurf - Paint 'n Play Workshop (1983).col"
+//	.incbin "coleco/Spy Hunter (1983-84) (Midway).rom"
 endRom:
 rawBios:
 	.incbin "SMS BIOS (US v1.3).sms"
 //	.incbin "SMS (v2.0) [BIOS].sms"
 //	.incbin "SMS BIOS (JP).sms"
 //	.incbin "majbios.gg"
+//	.incbin "COLECO.ROM"
 #endif
 miniBios:
 	.incbin "MiniBios.sms"
@@ -205,6 +214,7 @@ loadCart: 		;@ Called from C:  r0=emuFlags
 
 //	orr r0,r0,#GG_MODE
 //	orr r0,r0,#SG_MODE
+//	orr r0,r0,#COL_MODE
 	str r0,gEmuFlags
 
 	ldrb r0,gMachineSet
@@ -269,6 +279,8 @@ tbLoop1:
 	ldreq r1,g_BIOSBASE_US		;@ SMS US
 	tst r0,#COUNTRY
 	ldrne r1,g_BIOSBASE_JP		;@ SMS JP
+	cmp r9,#HW_COLECO
+	ldreq r1,g_BIOSBASE_COLECO	;@ COLECO
 	cmp r9,#HW_GG
 	ldreq r1,g_BIOSBASE_GG		;@ GG
 	bicne r2,r2,#0x40			;@ X as Start/Pause only on HW_GG
@@ -346,8 +358,8 @@ isSGRam:
 	bl reBankSwitchB_W
 
 	ldrb r9,gMachine
-//	cmp r9,#HW_COLECO
-//	bleq WRAMColeco
+	cmp r9,#HW_COLECO
+	bleq WRAMColeco
 //	cmp r9,#HW_MSX
 //	bleq initMSXMemory
 //	cmp r9,#HW_SORDM5
@@ -493,6 +505,9 @@ checkMachine:				;@ Returns machine in r0.
 	bne cmSetMachine
 	tst r1,#MD_MODE
 	movne r0,#HW_MEGADRIVE
+	bne cmSetMachine
+	tst r1,#COL_MODE
+	movne r0,#HW_COLECO
 	bne cmSetMachine
 	and r1,r1,#GG_MODE
 	cmp r1,#GG_MODE
@@ -704,6 +719,44 @@ setupMDBios:	;@ This needs to run after cpu reset, enables MD Bios without banks
 	storeLastBank r0
 	str r0,[z80ptr,#z80Regs + 6*4]
 	bx lr
+;@----------------------------------------------------------------------------
+WRAMColeco:					;@ Setup Coleco RAM.
+;@----------------------------------------------------------------------------
+	add r1,z80ptr,#z80WriteTbl
+	ldr r0,=WRMEMTBL_
+	ldr r0,[r0]
+	ldr r2,=ram1k_W
+	str r0,[r1,#0*4]			;@ Z80WriteTbl, WRITE_ROM
+	str r0,[r1,#1*4]			;@ Z80WriteTbl, WRITE_ROM
+	str r0,[r1,#2*4]			;@ Z80WriteTbl, WRITE_ROM
+	str r2,[r1,#3*4]			;@ Z80WriteTbl, WRITE_RAM
+	str r0,[r1,#4*4]			;@ Z80WriteTbl, WRITE_ROM
+	str r0,[r1,#5*4]			;@ Z80WriteTbl, WRITE_ROM
+	str r0,[r1,#6*4]			;@ Z80WriteTbl, WRITE_ROM
+	str r0,[r1,#7*4]			;@ Z80WriteTbl, WRITE_ROM
+
+	add r1,z80ptr,#z80MemTbl+39*4
+	ldr r2,=MEMMAPTBL_+3*4
+	ldr r0,[r2]					;@ MEMMAPTBL_ RAM
+	sub r0,r0,#0x6000
+	mov r2,#8
+initM3Loop:
+	str r0,[r1],#-4				;@ rommap
+	sub r0,r0,#0x400
+	subs r2,r2,#1
+	bne initM3Loop
+
+	ldr r2,=MEMMAPTBL_
+	ldr r0,[r2]					;@ MEMMAPTBL_ ROM
+	sub r0,r0,#0x8000
+	mov r2,#32
+initM4Loop:
+	str r0,[r1],#-4				;@ rommap
+	subs r2,r2,#1
+	bne initM4Loop
+
+	bx lr
+
 ;@----------------------------------------------------------------------------
 mapperDetect:		;@ In r0=romBase, r1=size.
 					;@ Out r0=mapper, 0=Sega, 1=Codemaster, 2=Korean, 3=Korean MSX.

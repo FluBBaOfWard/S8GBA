@@ -268,7 +268,7 @@ io_params:
 	.long IO_Params_SMS2_R,   IO_Params_SMS2_W			;@ HW_SMS2
 	.long IO_Params_GGSMS_R,  IO_Params_GGSMS_W			;@ HW_GG (SMS mode)
 	.long IO_Params_MD_R,     IO_Params_MD_W			;@ HW_MEGADRIVE
-//	.long IO_Params_Coleco_R, IO_Params_Coleco_W		;@ HW_COLECO
+	.long IO_Params_Coleco_R, IO_Params_Coleco_W		;@ HW_COLECO
 //	.long IO_Params_MSX_R,    IO_Params_MSX_W			;@ HW_MSX
 //	.long IO_Params_SordM5_R, IO_Params_SordM5_W		;@ HW_SORDM5
 //	.long IO_Params_SysE_R,   IO_Params_SysE_W			;@ HW_SYSE
@@ -324,8 +324,8 @@ ioReset:
 	cmpne r4,#HW_SG1000
 	cmpne r4,#HW_SGAC
 	cmpne r4,#HW_SC3000
-	cmpne r4,#HW_OMV
 	cmpne r4,#HW_SG1000II
+	cmpne r4,#HW_OMV
 	ldr r1,=empty_R
 	ldreq r1,=empty_R_SMS1
 	str r1,emptyReadPtr
@@ -333,7 +333,7 @@ ioReset:
 	ldr r3,=gEmuFlags
 	ldrb r3,[r3]
 	tst r3,#GG_MODE
-	addne r4,r4,#4				;@ HW_GG, GG_MODE
+	addne r4,r4,#5				;@ HW_GG, GG_MODE
 
 	ldr lr,=io_params
 	ldr r0,[lr,r4,lsl#3]!
@@ -550,6 +550,8 @@ refreshColJoypads:
 	orr r1,r1,r3
 
 	tst r2,#0x20000000			;@ Player2?
+	mov r2,#0
+	str r2,joy0State
 	strbeq r0,joy0State
 	strbne r0,joy1State
 	strbeq r1,joy0Extra

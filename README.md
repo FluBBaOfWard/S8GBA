@@ -9,6 +9,8 @@ This is a SEGA 8Bit emulator for the Nintendo GBA, it supports the following sys
 	SEGA Mark III
 	SEGA Master System J, 1 & 2
 	SEGA Game Gear
+	Othello Multivision
+	Coleco
 
 Some systems require you to add their Bios'es to function correctly.
 

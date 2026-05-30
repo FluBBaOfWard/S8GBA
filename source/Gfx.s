@@ -238,6 +238,8 @@ VDP0Reset:
 	ldrb r0,[r1,r3]
 	ldr r1,=Z80SetIRQPinCurrentCpu
 	ldr r2,=Z80SetNMIPinCurrentCpu
+	cmp r3,#HW_COLECO
+	ldreq r1,=Z80SetNMIPinCurrentCpu
 	ldr r3,=gEmuFlags
 	ldr r3,[r3]
 	tst r3,#PALTIMING
@@ -1801,7 +1803,7 @@ bgCont:
 	bne bgModeB
 ;@----------------------------------------------------------------------------
 bgMode1:
-	ldr r7,=0x20002000			;@ Palette 2
+	ldr r7,=0x20C020C0			;@ Palette 2
 bgM1Loop:
 	mov r5,#16
 bgM1Row:
@@ -1856,7 +1858,7 @@ bgM2Loop:
 ;@	ldr r7,=0x40004000
 ;@	ldr r9,=0x00040004
 bgMode3:
-	ldr r7,=0x40004000
+	ldr r7,=0x40C040C0
 	ldr r8,=0x00010001
 	ldr r9,=0x00040004
 bgM3Loop2:
@@ -1866,7 +1868,7 @@ bgM3Loop:
 	ldrh r1,[r3],#2				;@ Read from MasterSystem Tilemap RAM
 	orr r1,r1,r1,lsl#8
 	bic r1,r1,#0xFF00
-	orr r1,r7,r1,lsl#2			;@ Palette & tile offset.
+	add r1,r7,r1,lsl#2			;@ Palette & tile offset.
 
 	str r0,[r4,r8,lsr#12]		;@ Write to NDS/GBA Tilemap RAM, BGR color
 	str r1,[r4,#0x800]			;@ Write to NDS/GBA Tilemap RAM, behind sprites

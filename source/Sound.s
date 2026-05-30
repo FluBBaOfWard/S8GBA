@@ -1,5 +1,6 @@
 #ifdef __arm__
 
+#include "Equates.h"
 #include "Shared/gba_asm.h"
 #include "SN76496/SN76496.i"
 
@@ -20,7 +21,7 @@
 
 	.extern pauseEmulation
 
-
+;@----------------------------------------------------------------------------
 	.syntax unified
 	.arm
 
@@ -89,7 +90,17 @@ soundInit:
 soundReset:
 ;@----------------------------------------------------------------------------
 	stmfd sp!,{lr}
-	mov r0,#1					;@ SMS chip type
+	ldr r1,=gMachine
+	ldrb r1,[r1]
+	cmp r1,#HW_SG1000
+	cmpne r1,#HW_SGAC
+	cmpne r1,#HW_SC3000
+	cmpne r1,#HW_OMV
+	cmpne r1,#HW_SG1000II	;@ ?
+	cmpne r1,#HW_COLECO
+	mov r0,#0					;@ SN76496 type
+	movne r0,#1					;@ SMS chip type
+
 	ldr r1,=SN76496_0
 	bl sn76496Reset				;@ Sound
 	ldmfd sp!,{lr}

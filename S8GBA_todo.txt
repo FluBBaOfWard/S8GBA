@@ -1,6 +1,7 @@
 S8DS To do
 ------------
 
+	Add more BIOSes to html builder, test Coleco.
 	Save region & machine?
 	Games that crash the emulator when machine is set to 'auto' :
 	Master of Darkness

@@ -39,9 +39,10 @@ SMSFrameLoop:
 	ldr vdpptr,=VDP0
 	bl VDPDoScanline
 	cmp r0,#0
-	ldmfdne sp!,{pc}
 	mov r0,#CYCLE_PSL
 	adr lr, SMSFrameLoop
+	beq Z80RunXCycles
+	ldmfd sp!,{lr}
 	b Z80RunXCycles
 ;@----------------------------------------------------------------------------
 

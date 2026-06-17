@@ -70,6 +70,7 @@
 	.global g_BIOSBASE_US
 	.global g_BIOSBASE_JP
 	.global g_BIOSBASE_GG
+	.global g_BIOSBASE_COLECO
 	.global gRomSize
 	.global romSpacePtr
 
@@ -248,9 +249,7 @@ loadCart: 		;@ Called from C:  r0=emuFlags
 	str r1,BankMap0
 
 	ldr r4,=MEMMAPTBL_
-	ldr r9,=RDMEMTBL_
 	ldr r6,=WRMEMTBL_
-	ldr r7,=rom_R
 	ldrmi r8,=rom_W
 	ldreq r8,=Codemaster_W
 	ldrhi r8,=Korean_W
@@ -261,7 +260,6 @@ tbLoop1:
 	and r1,r0,r2
 	add r1,r3,r1,lsl#14
 	str r1,[r4,r0,lsl#2]
-	str r7,[r9,r0,lsl#2]
 	str r8,[r6,r0,lsl#2]
 	add r0,r0,#1
 	cmp r0,#8
@@ -909,7 +907,6 @@ sizeLoop1:
 
 	bx lr
 
-
 ;@----------------------------------------------------------------------------
 //	.section itcm
 ;@----------------------------------------------------------------------------
@@ -1461,8 +1458,6 @@ DISABLEDMEM:
 WRMEMTBL_:
 	.space 8*4
 MEMMAPTBL_:
-	.space 8*4
-RDMEMTBL_:
 	.space 8*4
 ROMBANKMAP:
 	.space 256*4

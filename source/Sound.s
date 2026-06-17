@@ -44,7 +44,7 @@ soundInit:
 
 	movmi r0,#0
 //	ldreq r0,=0x0b040000		;@ Stop all channels, output ratio=100% dsA.  use directsound A for L&R, timer 0
-	ldreq r0,=0x9a0c0000		;@ use directsound A&B, timer 0
+	ldreq r0,=0x9a0c0000		;@ use directsound A & B, timer 0
 	str r0,[r5,#REG_SGCNT_L]
 
 	moveq r0,#0x80
@@ -196,10 +196,8 @@ soundMode:
 
 #ifdef NDS
 	.section .sbss				;@ This is DTCM on NDS with devkitARM
-#elif GBA
-	.section .bss				;@ This is IWRAM on GBA with devkitARM
 #else
-	.section .bss
+	.section .bss				;@ This is IWRAM on GBA with devkitARM
 #endif
 	.align 2
 SN76496_0:

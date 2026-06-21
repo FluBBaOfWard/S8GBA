@@ -98,6 +98,7 @@ rawRom:
 //	.incbin "sms/Fire & Forget 2 (UE) [!].sms"
 //	.incbin "sms/FM_Tool.sms"
 //	.incbin "sms/Gauntlet (UE) [!].sms"
+//	.incbin "sms/Haja no Fuuin (J) [!].sms"
 //	.incbin "sms/Jang Pung II [SMS-GG] (KR).sms"
 //	.incbin "sms/Master of Darkness (UE) [!].sms"
 //	.incbin "sms/MD6ButtonTest.sms"

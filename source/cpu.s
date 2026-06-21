@@ -133,6 +133,11 @@ stepFrame:					;@ Return after 1 frame
 s8StepLoop:
 ;@----------------------------------------------------------------------------
 	bl SMSFrameRun
+
+	ldr vdpptr,=VDP0			;@ We need to emulate one more line to sync gfx
+	bl VDPDoScanline
+	mov r0,#CYCLE_PSL
+	bl Z80RunXCycles
 ;@----------------------------------------------------------------------------
 	add r0,z80ptr,#z80Regs
 	stmia r0,{z80f-z80pc,z80sp}	;@ Save Z80 state

@@ -382,8 +382,8 @@ loadScaleValues:
 	
 	b buildSpriteScaling
 
-BG_SCALING_TO_FIT:				;@ 191->SCREEN_HEIGHT, 224->S_H, 240->S_H
-	.long 0xD560,0xDB6D,0xCCCD
+BG_SCALING_TO_FIT:				;@ 192->SCREEN_HEIGHT, 224->S_H, 240->S_H
+	.long 0xD560,0xB710,0xACCD
 	.long SCREEN_HEIGHT,SCREEN_HEIGHT,SCREEN_HEIGHT
 	.long 0x0000,0x0000,0x0000
 	.long 0x0100,0x0120,0x0099
@@ -400,9 +400,9 @@ BG_SCALING_1_1_GG:
 BG_SCALING_ASPECT_PAL:			;@ 192->142, 224->165, 240->177
 	.long 0xBD56,0xBD56,0xBD56
 	.long 0x0900 + SCREEN_HEIGHT-9,SCREEN_HEIGHT,SCREEN_HEIGHT
-	.long    -9,      2,     8
+	.long    -13,      2,     8
 	.long 0x0150,0x0150,0x00AD
-BG_SCALING_ASPECT_NTSC:			;@ 192->170, 224->199, 240->213, 216->192, 9->8
+BG_SCALING_ASPECT_NTSC:			;@ 192->170, 224->199, 240->213
 	.long 0xE38F,0xE2AB,0xE2AB
 	.long SCREEN_HEIGHT,SCREEN_HEIGHT,SCREEN_HEIGHT
 	.long      5,0x0004,0x000C
@@ -1086,20 +1086,42 @@ tileLoop4_1:
 	bx lr
 
 ;@----------------------------------------------------------------------------
-scrolLoop2:
-	ldrb r11,[r5],#2
-	add r0,r11,r8
-	mov r1,r0
-	mov r9,r0
-	stmia r4!,{r0-r1,r9}
+scaleBuffer3:
+scaleLoop3:
+	ldrb r4,[r1,r3,lsl#1]
+	add r4,r4,r8
+	mov r5,r4
+	mov r9,r4
+	stmia r0!,{r4,r5,r9}
 	subs r6,r6,r6,lsl#16
 	subcs r6,r6,r6,lsl#16
 	addcs r8,r8,#0x10000
-	addcs r5,r5,#2
 	adcs r3,r3,#1
 	subcs r8,r8,r7,lsl#16
-	subs r10,r10,#1
-	bne scrolLoop2
+	subs r2,r2,#1
+	bne scaleLoop3
+	bx lr
+;@----------------------------------------------------------------------------
+scaleBuffer4:
+	stmfd sp!,{r10}
+	sub r10,r8,r4,lsl#16
+	bic r10,r10,#0xFF
+scaleLoop4:
+	ldrb r4,[r1,r3,lsl#1]
+	add r4,r4,r8
+	mov r5,r4
+	mov r9,r4
+	sub r11,r4,r10
+	stmia r0!,{r4,r5,r9,r11}
+	subs r6,r6,r6,lsl#16
+	subcs r6,r6,r6,lsl#16
+	addcs r8,r8,#0x10000
+	adcs r3,r3,#1
+	subcs r8,r8,r7,lsl#16
+	subcs r10,r10,r7,lsl#16
+	subs r2,r2,#1
+	bne scaleLoop4
+	ldmfd sp!,{r10}
 	bx lr
 
 #ifdef GBA
@@ -1154,27 +1176,42 @@ noJump:
 	cmp r1,#0
 	subne r6,r6,r6,lsl#16
 
-	ldr r2,=DMA0Buff
-	mov r4,r2
+	ldr r0,=selectedMenu
+	ldr r0,[r0]
+	ldrb r10,[vdpptr,#vdpMode1]
+	cmp r0,#0
+	bicne r10,r10,#0x80
+
+	ldr r0,=DMA0Buff
 	mov r8,#(GAME_WIDTH-SCREEN_WIDTH)/2
 	orr r8,r8,r3,lsl#16
 	subs r3,r3,r7
 	subpl r3,r3,r7
 	subpl r8,r8,r7,lsl#16
-	mov r10,#SCREEN_HEIGHT
-	add r5,r5,#1
-	bl scrolLoop2
+	sub r5,r5,r3,lsl#1
+	add r1,r5,#1
+	mov r2,#SCREEN_HEIGHT
+	tst r10,#0x80				;@ Columns 24-31 locked?
+	adr lr,scaleRet
+	beq scaleBuffer3
+	bne scaleBuffer4
+scaleRet:
 
 	mov r8,#REG_BASE
 	strh r8,[r8,#REG_DMA0CNT_H]	;@ DMA0 stop
 
-	add r1,r8,#REG_DMA0SAD
-;@	mov r2,r2					;@ Setup DMA buffer for scrolling:
-	ldmia r2!,{r4-r6}			;@ Read
-	add r3,r8,#REG_BG0HOFS		;@ DMA0 always goes here
-	stmia r3,{r4-r6}			;@ Set 1st value manually, HBL is AFTER 1st line
-	ldr r4,=0xA6600003			;@ noIRQ hblank 32bit repeat incsrc inc_reloaddst, 3 word
-	stmia r1,{r2-r4}			;@ DMA0 go
+	add r0,r8,#REG_DMA0SAD
+	ldr r1,=DMA0Buff
+;@	mov r1,r1					;@ Setup DMA buffer for scrolling:
+	tst r10,#0x80				;@ Columns 24-31 locked?
+	ldmiaeq r1!,{r3-r5}			;@ Read
+	ldmiane r1!,{r3-r6}			;@ Read
+	add r2,r8,#REG_BG0HOFS		;@ DMA0 always goes here
+	stmiaeq r2,{r3-r5}			;@ Set 1st value manually, HBL is AFTER 1st line
+	stmiane r2,{r3-r6}			;@ Set 1st value manually, HBL is AFTER 1st line
+	ldr r3,=0xA6600003			;@ noIRQ hblank 32bit repeat incsrc inc_reloaddst, 3 word
+	addne r3,r3,#1
+	stmia r0,{r1-r3}			;@ DMA0 go
 
 	add r0,r8,#REG_DMA3SAD
 
@@ -1190,13 +1227,7 @@ noJump:
 	orr r3,r3,#0x100			;@ 256 words (1024 bytes)
 	stmia r0,{r1-r3}			;@ DMA3 go
 
-	ldr r0,=selectedMenu
-	ldr r0,[r0]
-	ldrb r4,[vdpptr,#vdpMode1]
-	cmp r0,#0
-	bicne r4,r4,#0x80
-	tst r4,#0x80				;@ Columns 24-31 locked?
-	ldr r2,[vdpptr,#vdpBgrMapOfs1]
+	ldr r2,[vdpptr,#vdpBgrMapOfs0]
 	add r0,r2,#0x0005
 	strh r0,[r8,#REG_BG0CNT]
 	ldr r3,=0x02870102
@@ -1204,7 +1235,7 @@ noJump:
 	ldr r1,[vdpptr,#vdpBgrTileOfs]
 	add r0,r0,r1,lsr#12
 	strh r0,[r8,#REG_BG1CNT]
-	ldreq r0,=GFX_BG3CNT
+	ldreq r0,=GFX_BG3CNT		;@ No side panel
 	ldrheq r0,[r0]
 	strh r0,[r8,#REG_BG3CNT]
 	add r0,r2,r3,lsr#16
@@ -1218,7 +1249,7 @@ noJump:
 	biceq r0,r0,#0x0017			;@ Turn off sprites and bg
 	orr r0,r0,r0,lsl#8
 
-	tst r4,#0x80				;@ Columns 24-31 locked?
+	tst r10,#0x80				;@ Columns 24-31 locked?
 	bicne r0,r0,#0x0308
 
 	strh r0,[r8,#REG_WININ]
@@ -1250,13 +1281,13 @@ noJump:
 DisplayControl:
 	.short 0x3F40,0
 Window0HValue_normal:
-	.long 0x00E0
-Window0HValue_col0:
-	.long 0x08E0
-Window1HValue:
-	.long 0xE000
-WindowVValue:
 	.long 0x00C0
+Window0HValue_col0:
+	.long 0x00C0
+Window1HValue:
+	.long 0xC000
+WindowVValue:
+	.long SCREEN_HEIGHT
 ;@----------------------------------------------------------------------------
 bgScaleValue:	.long 0x00002B10			;@ was 0x2AAB
 
@@ -1283,7 +1314,6 @@ earlyFrame:					;@ Called at line 0,16 or 32	(r0,r2 safe to use)
 	adrne lr,earlyFrameEnd
 	bne spriteScannerStart
 
-
 	ldrb r0,[vdpptr,#vdpRealMode]
 	cmp r0,#VDPMODE_4
 	bleq sprDMADo0
@@ -1291,7 +1321,7 @@ earlyFrameEnd:
 	ldmfd sp!,{r1,r3-r12,pc}
 
 ;@----------------------------------------------------------------------------
-endFrame:					;@ Called just before screen end (~line 192)	(r0 & r2 safe to use)
+endFrame:					;@ Called at screen end (~line 192)	(r0 & r2 safe to use)
 ;@----------------------------------------------------------------------------
 	stmfd sp!,{r1,r3-r11,lr}
 
@@ -2060,7 +2090,7 @@ OAMBuffer1:
 OAMBuffer2:
 	.space 0x400
 DMA0Buff:
-	.space SCREEN_HEIGHT*3*4
+	.space SCREEN_HEIGHT*4*4
 mappedRGB:
 	.space 0x2000
 EMUPALBUFF:

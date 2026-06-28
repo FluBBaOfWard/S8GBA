@@ -1,4 +1,4 @@
-S8DS To do
+S8GBA To do
 ------------
 
 	Add more BIOSes to html builder, test Coleco.

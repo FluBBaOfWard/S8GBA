@@ -625,7 +625,7 @@ joy1Extra:		.byte 0
 joyMode:		.byte 0
 colecoKey:		.byte 0
 inputHW:		.byte 0
-ym2413Enabled:	.byte 1
+ym2413Enabled:	.byte 0
 
 sc3Keyboard:
 keyboardRows:

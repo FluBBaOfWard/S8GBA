@@ -152,9 +152,13 @@ void loadBIOSes(void) {
 	g_BIOSBASE_US = NULL;
 	g_BIOSBASE_JP = NULL;
 	g_BIOSBASE_GG = NULL;
+	g_BIOSBASE_COLECO = NULL;
 	while ((bh = findBios(n++))) {
 		if (bh->flags & GG_MODE) {
 			g_BIOSBASE_GG = (const u8 *)bh + sizeof(RomHeader);
+		}
+		else if (bh->flags & COL_MODE) {
+			g_BIOSBASE_COLECO = (const u8 *)bh + sizeof(RomHeader);
 		}
 		else {
 			if (bh->flags & COUNTRY) {

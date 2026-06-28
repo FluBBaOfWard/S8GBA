@@ -16,10 +16,10 @@
 #include "SegaVDP/Version.h"
 #include "SN76496/Version.h"
 
-#define EMUVERSION "V1.1.8 2026-06-17"
+#define EMUVERSION "V1.1.8 2026-06-28"
 
 static void gammaChange(void);
-static void machineSet(void);
+static void selectMachine(void);
 static const char *getMachineText(void);
 static void speedHackSet(void);
 static const char *getSpeedHackText(void);
@@ -56,7 +56,13 @@ static const char *getGlassesText(void);
 static void countrySet(void);
 static const char *getCountryText(void);
 
+static void uiAbout(void);
+static void uiSelectMachine(void);
+static void uiLoadGame(void);
+
 static void updateGameInfo(void);
+
+static void ui11(void);
 
 const MItem dummyItems[] = {
 	{"", uiDummy},
@@ -101,7 +107,7 @@ const MItem displayItems[] = {
 };
 const MItem machineItems[] = {
 	{"Region: ", countrySet, getCountryText},
-	{"Machine: ", machineSet, getMachineText},
+	{"Machine: ", ui11, getMachineText},
 	{"Cpu Speed Hacks: ", speedHackSet, getSpeedHackText},
 	{"Sound: ", soundSet, getSoundText},
 };
@@ -122,6 +128,9 @@ const MItem debugItems[] = {
 const MItem fnList9[] = {
 	{"", quickSelectGame},
 };
+static const MItem fnList11[] = {
+	{"",selectMachine},{"",selectMachine},{"",selectMachine},{"",selectMachine},{"",selectMachine},{"",selectMachine},{"",selectMachine},{"",selectMachine},{"",selectMachine},{"",selectMachine},{"",selectMachine},{"",selectMachine},{"",selectMachine}
+};
 const MItem quitItems[] = {
 	{"Yes", exitEmulator},
 	{"No", backOutOfMenu},
@@ -138,8 +147,9 @@ const Menu menu7 = MENU_M("Debug", uiAuto, debugItems);
 const Menu menu8 = MENU_M("About", uiAbout, dummyItems);
 const Menu menu9 = MENU_M("Load game", uiLoadGame, fnList9);
 const Menu menu10 = MENU_M("Quit Emulator?", uiAuto, quitItems);
+const Menu menu11 = MENU_M("Select Machine", uiSelectMachine, fnList11);
 
-const Menu *const menus[] = {&menu0, &menu1, &menu2, &menu3, &menu4, &menu5, &menu6, &menu7, &menu8, &menu9, &menu10 };
+const Menu *const menus[] = {&menu0, &menu1, &menu2, &menu3, &menu4, &menu5, &menu6, &menu7, &menu8, &menu9, &menu10, &menu11 };
 
 EWRAM_BSS char gameInfoString[32];
 
@@ -195,8 +205,21 @@ void uiAbout() {
 	drawText("SNGG76496   " ARMSN76496VERSION, 19);
 }
 
+void uiSelectMachine() {
+	setupSubMenuText();
+	int i;
+	for (i=0; i<ARRSIZE(machTxt); i++) {
+		drawSubItem(machTxt[i], NULL);
+	}
+}
+
 void uiLoadGame() {
 	setupSubMenuText();
+}
+
+void ui11() {
+	enterMenu(11);
+	selected = gMachineSet;
 }
 
 void nullUINormal(int key) {
@@ -397,11 +420,9 @@ const char *getCountryText() {
 	return cntrTxt[gRegion];
 }
 
-void machineSet() {
-	gMachineSet++;
-	if (gMachineSet >= HW_SELECT_END) {
-		gMachineSet = 0;
-	}
+void selectMachine() {
+	gMachineSet = selected;
+	backOutOfMenu();
 }
 const char *getMachineText() {
 	return machTxt[gMachineSet];

@@ -31,7 +31,7 @@
 	.global gDipSwitch0
 	.global gDipSwitch1
 	.global gDipSwitch2
-	
+
 	.global BankSwitchR_W
 	.global BankSwitch0_W
 	.global BankSwitch1_W
@@ -138,16 +138,18 @@ rawRom:
 //	.incbin "sg/Othello (JP).sg"
 //	.incbin "sg/Othello Multivision [BIOS].sg"
 //	.incbin "sg/Q-Bert.sg"
-//	.incbin "sc/Sega Basic Level 2 (JP).sc"
 //	.incbin "sg/SG-1000 M2 Check Program.sg"
+//	.incbin "sc/Sega Basic Level 2 (JP).sc" // Mode 1
+//	.incbin "sc/Sega Basic Level 2 (JP).sc" // Mode 1
 //	.incbin "coleco/Amazing Bumpman (1986) (Telegames).rom"
 //	.incbin "coleco/BC's Quest for Tires II - Grog's Revenge (1984) (32k).rom"
-//	.incbin "coleco/Burgertime (1982-84) (Data East).rom"
+//	.incbin "coleco/Burgertime (1982-84) (Data East).rom" Mode 2
 //	.incbin "coleco/Chuck Norris - Super Kicks (1983) (Xonox).rom"
+//	.incbin "coleco/Congo Bongo (1984).rom"
 //	.incbin "coleco/Cosmic Avenger (1982) (Universal).rom"
-//	.incbin "coleco/River Raid (1982-84) (Activision) [!].rom"
-//	.incbin "coleco/Smurf - Paint 'n Play Workshop (1983).col"
-//	.incbin "coleco/Spy Hunter (1983-84) (Midway).rom"
+//	.incbin "coleco/River Raid (1982-84) (Activision) [!].rom" // Mode 0
+//	.incbin "coleco/Smurf - Paint 'n Play Workshop (1983).col" // Mode 3
+//	.incbin "coleco/Spy Hunter (1983-84) (Midway).rom" // Mode 0
 endRom:
 rawBios:
 	.incbin "SMS BIOS (US v1.3).sms"
@@ -172,7 +174,7 @@ machineInit: 					;@ Called from C
 	.type   machineInit STT_FUNC
 ;@----------------------------------------------------------------------------
 	stmfd sp!,{z80ptr,lr}
-	mov r0,#0x0014				;@ 3/1 wait state
+	mov r0,#0x0014				;@ ROM 3/1 wait state
 	ldr r1,=REG_WAITCNT
 	strh r0,[r1]
 
@@ -216,6 +218,7 @@ loadCart: 		;@ Called from C:  r0=emuFlags
 
 //	orr r0,r0,#GG_MODE
 //	orr r0,r0,#SG_MODE
+//	orr r0,r0,#SC_MODE
 //	orr r0,r0,#COL_MODE
 	str r0,gEmuFlags
 

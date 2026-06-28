@@ -16,8 +16,6 @@ void nullUIDebug(int key);
 void resetConsole(void);
 
 void uiNullNormal(void);
-void uiAbout(void);
-void uiLoadGame(void);
 
 void sdscHandler(const unsigned char sdscChar);
 void debugIOUnimplR(u16 port);

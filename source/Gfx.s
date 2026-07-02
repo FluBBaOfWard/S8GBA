@@ -24,6 +24,7 @@
 	.global GFX_BG0CNT
 	.global GFX_BG3CNT
 
+	.global antWarsInit
 	.global antWars
 	.global gfxInit
 	.global gfxReset
@@ -67,43 +68,39 @@
 	.align 2
 
 antSeed:
-	.long 0x800000
+	.long 0x814821
 ;@----------------------------------------------------------------------------
-antWars:
-	.type antWars STT_FUNC
+antWarsInit:
+	.type antWarsInit STT_FUNC
 ;@----------------------------------------------------------------------------
+	ldr r0,=gMachine
+	ldrb r0,[r0]
+	cmp r0,#HW_GG
+	bxeq lr
 	stmfd sp!,{r4,lr}
 
+	ldr r4,=VDP0
 	mov r0,#0x40
-	ldr r1,=VDP0
-	strb r0,[r1,#vdpMode2Bak2]
+	strb r0,[r4,#vdpMode2Bak2]
 
 	ldr r0,=EMUPALBUFF			;@ Setup palette for antWars.
-	mov r4,#0
-	strh r4,[r0]
-	strh r4,[r0,#0x40]
-	ldr r4,=0x7FFF
-	strh r4,[r0,#0x1E]
+	mov r1,#0
+	strh r1,[r0]
+	strh r1,[r0,#0x40]
+	ldr r1,=0x7FFF
+	strh r1,[r0,#0x5E]
 
-	ldr r4,[r1,#vdpBgrMapOfs1]
-	mov r0,#BG_GFX
-	add r4,r0,r4,lsl#3
-	mov r0,#0
-tmLoop:
-	add r1,r0,#8
-	strh r1,[r4],#2
-	add r0,r0,#1
-	cmp r0,#1024
-	bne tmLoop
+	ldr r0,[r4,#vdpBgrMapOfs0]
+	mov r1,#BG_GFX
+	add r0,r1,r0,lsl#3
+	add r0,r0,#0x800
 
-	mov r0,r4
-	ldr r1,=0x02000200
-	mov r2,#0x800/4
-	bl memset_					;@ BG1/BG3 clear
+	mov r1,#0x1000/4
+	bl memclr_					;@ BG1/BG3 clear
 
-	ldr r0,=BG_GFX+0x04100
+	ldr r0,[r4,#vdpBgrTileOfs]
 	ldr r3,antSeed
-	ldr r1,=32*192
+	ldr r1,=32*128
 antLoop0:
 	mov r2,#8
 antLoop1:
@@ -121,10 +118,45 @@ antLoop1:
 	ldmfd sp!,{r4,lr}
 	bx lr
 ;@----------------------------------------------------------------------------
+antWars:
+	.type antWars STT_FUNC
+;@----------------------------------------------------------------------------
+	ldr r0,=gMachine
+	ldrb r0,[r0]
+	cmp r0,#HW_GG
+	bxeq lr
+	stmfd sp!,{r4,lr}
+
+	ldr r4,=VDP0
+	ldr r0,[r4,#vdpBgrMapOfs0]
+	ldr r3,[r4,#vdpBgrTileOfs]
+	and r3,r3,#0x3FC0
+	mov r3,r3,lsr#5
+	orr r3,r3,#0x2000			;@ Palette 2
+	mov r1,#BG_GFX
+	add r0,r1,r0,lsl#3
+	ldr r4,antSeed
+	mov r1,#1024
+tmLoop:
+	movs r4,r4,lsr#1
+	eorcs r4,r4,#0xE10000
+	mov r2,r4,lsl#23
+	add r2,r3,r2,lsr#23
+	strh r2,[r0],#2
+	subs r1,r1,#1
+	bne tmLoop
+
+	str r4,antSeed
+	ldmfd sp!,{r4,lr}
+	bx lr
+;@----------------------------------------------------------------------------
 gfxInit:					;@ (called from main.c) only need to call once
 	.type gfxInit STT_FUNC
 ;@----------------------------------------------------------------------------
-	b rendererInit
+	stmfd sp!,{lr}
+	bl rendererInit
+	ldmfd sp!,{lr}
+	b VDP0Reset
 ;@----------------------------------------------------------------------------
 gfxReset:					;@ Called with cpuReset
 ;@----------------------------------------------------------------------------
@@ -219,9 +251,9 @@ VDP0Reset:
 	str r0,[vdpptr,#vdpBgrMapOfs0]
 	mov r0,#0x0000				;@ BGR map
 	str r0,[vdpptr,#vdpBgrMapOfs1]
-	mov r0,#0x04000				;@ BGR tiles
+	ldr r0,=BG_GFX+0x05800		;@ BGR tiles
 	str r0,[vdpptr,#vdpBgrTileOfs]
-	mov r0,#0x14000				;@ SPR tiles
+	ldr r0,=BG_GFX+0x14000		;@ SPR tiles
 	str r0,[vdpptr,#vdpSprTileOfs]
 
 	ldr r0,=gEmuFlags
@@ -770,40 +802,41 @@ scaleRet:
 	mov r8,#REG_BASE
 	strh r8,[r8,#REG_DMA0CNT_H]	;@ DMA0 stop
 
-	add r0,r8,#REG_DMA0SAD
-	ldr r1,=DMA0Buff
-;@	mov r1,r1					;@ Setup DMA buffer for scrolling:
+	ldr r0,=DMA0Buff
+;@	mov r0,r1					;@ Setup DMA buffer for scrolling:
 	tst r10,#0x80				;@ Columns 24-31 locked?
-	ldmiaeq r1!,{r3-r5}			;@ Read
-	ldmiane r1!,{r3-r6}			;@ Read
-	add r2,r8,#REG_BG0HOFS		;@ DMA0 always goes here
-	stmiaeq r2,{r3-r5}			;@ Set 1st value manually, HBL is AFTER 1st line
-	stmiane r2,{r3-r6}			;@ Set 1st value manually, HBL is AFTER 1st line
-	ldr r3,=0xA6600003			;@ noIRQ hblank 32bit repeat incsrc inc_reloaddst, 3 word
-	addne r3,r3,#1
-	stmia r0,{r1-r3}			;@ DMA0 go
+	ldmiaeq r0!,{r2-r4}			;@ Read
+	ldmiane r0!,{r2-r5}			;@ Read
+	add r1,r8,#REG_BG0HOFS		;@ DMA0 always goes here
+	stmiaeq r1,{r2-r4}			;@ Set 1st value manually, HBL is AFTER 1st line
+	stmiane r1,{r2-r5}			;@ Set 1st value manually, HBL is AFTER 1st line
+	ldr r2,=0xA6600003			;@ noIRQ hblank 32bit repeat incsrc inc_reloaddst, 3 word
+	addne r2,r2,#1
+	add r3,r8,#REG_DMA0SAD
+	stmia r3,{r0-r2}			;@ DMA0 go
 
-	add r0,r8,#REG_DMA3SAD
+	add r3,r8,#REG_DMA3SAD
 
-	ldr r1,[vdpptr,#vdpDMAOAMBuffer]	;@ DMA3 src, OAM transfer:
-	mov r2,#OAM					;@ DMA3 dst
-	mov r3,#0x84000000			;@ noIRQ 32bit incsrc incdst
-	orr r3,r3,#0x100			;@ 128 sprites (1024 bytes)
-	stmia r0,{r1-r3}			;@ DMA3 go
+	ldr r0,[vdpptr,#vdpDMAOAMBuffer]	;@ DMA3 src, OAM transfer:
+	mov r1,#OAM					;@ DMA3 dst
+	mov r2,#0x84000000			;@ noIRQ 32bit incsrc incdst
+	orr r2,r2,#0x100			;@ 128 sprites (1024 bytes)
+	stmia r3,{r0-r2}			;@ DMA3 go
 
-	ldr r1,=EMUPALBUFF			;@ DMA3 src, Palette transfer:
-	mov r2,#BG_PALETTE			;@ DMA3 dst
-	mov r3,#0x84000000			;@ noIRQ 32bit incsrc incdst
-	orr r3,r3,#0x100			;@ 256 words (1024 bytes)
-	stmia r0,{r1-r3}			;@ DMA3 go
+	ldr r0,=EMUPALBUFF			;@ DMA3 src, Palette transfer:
+	mov r1,#BG_PALETTE			;@ DMA3 dst
+	mov r2,#0x84000000			;@ noIRQ 32bit incsrc incdst
+	orr r2,r2,#0x100			;@ 256 words (1024 bytes)
+	stmia r3,{r0-r2}			;@ DMA3 go
 
-	ldr r2,[vdpptr,#vdpBgrMapOfs0]
-	add r0,r2,#0x0005
-	strh r0,[r8,#REG_BG0CNT]
-	ldr r3,=0x02870102
-	add r0,r2,r3
 	ldr r1,[vdpptr,#vdpBgrTileOfs]
-	add r0,r0,r1,lsr#12
+	ldr r2,[vdpptr,#vdpBgrMapOfs0]
+	and r1,r1,#0xC000
+	add r2,r2,r1,lsr#12
+	add r0,r2,#0x0001			;@ Prio
+	strh r0,[r8,#REG_BG0CNT]
+	ldr r3,=0x02830102
+	add r0,r2,r3
 	strh r0,[r8,#REG_BG1CNT]
 	ldreq r0,=GFX_BG3CNT		;@ No side panel
 	ldrheq r0,[r0]
@@ -833,14 +866,6 @@ scaleRet:
 	ldr r0,WindowVValue
 	strh r0,[r8,#REG_WIN0V]
 	strh r0,[r8,#REG_WIN1V]
-
-@	ldrh r0,DisplayControl		;@ 1d sprites, Win0, OBJ, BG0/1/2/3 enable. mode0.
-@	orrne r0,r0,#0x6000			;@ Enable Win0 & 1
-@	ldrb r2,[vdpptr,#vdpMode2Bak2]
-@	tst r2,#0x40
-@	biceq r0,r0,#0x1700			;@ Turn off sprites and bg
-@	ldrb r2,gfxLayerMask
-@	bic r0,r0,r2,lsl#8
 
 	ldrb r4,[vdpptr,#vdpTVType]
 	bl scanKeys

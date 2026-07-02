@@ -16,7 +16,7 @@
 #include "SegaVDP/Version.h"
 #include "SN76496/Version.h"
 
-#define EMUVERSION "V1.1.8 2026-06-28"
+#define EMUVERSION "V1.1.8 2026-07-02"
 
 static void gammaChange(void);
 static void selectMachine(void);
@@ -32,6 +32,9 @@ static void colorSet(void);
 static const char *getColorText(void);
 static void borderSet(void);
 static const char *getBorderText(void);
+
+static void powerOnOff(void);
+static void resetConsole(void);
 
 static void controllerSet(void);
 static const char *getControllerText(void);
@@ -76,6 +79,7 @@ const MItem mainItems[] = {
 	{"Debug->", ui7},
 	{"About->", ui8},
 	{"Sleep", gbaSleep},
+	{"Power On/Off", powerOnOff},
 	{"Reset Console", resetConsole},
 	{"Quit Emulator", ui10},
 };
@@ -226,6 +230,19 @@ void nullUINormal(int key) {
 }
 
 void nullUIDebug(int key) {
+}
+
+void powerOnOff() {
+	powerIsOn = !powerIsOn;
+	loadCart(gEmuFlags);			// This resets the graphics.
+	soundSetMuteGUI();
+	if (!isMenuOpen()) {
+		cls(0);
+		uiNullNormal();
+	}
+	if (!powerIsOn) {
+		antWarsInit();
+	}
 }
 
 void resetConsole() {

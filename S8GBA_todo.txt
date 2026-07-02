@@ -1,6 +1,7 @@
 S8GBA To do
 ------------
 
+	Move sprite handling to RendererGBA
 	Add more BIOSes to html builder, test Coleco.
 	Save region & machine?
 	Games that crash the emulator when machine is set to 'auto' :

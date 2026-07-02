@@ -24,6 +24,7 @@ extern u16 GFX_BG3CNT;
 
 void gfxInit(void);
 void vblIrqHandler(void);
+void antWarsInit(void);
 void antWars(void);
 void paletteInit(u8 gammaVal);
 void mapSGPalette(u8 gammaVal);

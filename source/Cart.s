@@ -140,10 +140,10 @@ rawRom:
 //	.incbin "sg/Q-Bert.sg"
 //	.incbin "sg/SG-1000 M2 Check Program.sg"
 //	.incbin "sc/Sega Basic Level 2 (JP).sc" // Mode 1
-//	.incbin "sc/Sega Basic Level 2 (JP).sc" // Mode 1
+//	.incbin "sc/Uranai Angel Cutie (JP).sc" // Mode 1
 //	.incbin "coleco/Amazing Bumpman (1986) (Telegames).rom"
 //	.incbin "coleco/BC's Quest for Tires II - Grog's Revenge (1984) (32k).rom"
-//	.incbin "coleco/Burgertime (1982-84) (Data East).rom" Mode 2
+//	.incbin "coleco/Burgertime (1982-84) (Data East).rom" // Mode 2
 //	.incbin "coleco/Chuck Norris - Super Kicks (1983) (Xonox).rom"
 //	.incbin "coleco/Congo Bongo (1984).rom"
 //	.incbin "coleco/Cosmic Avenger (1982) (Universal).rom"

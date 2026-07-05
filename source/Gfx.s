@@ -102,15 +102,14 @@ antWarsInit:
 	ldr r3,antSeed
 	ldr r1,=32*128
 antLoop0:
-	mov r2,#8
 antLoop1:
 	movs r3,r3,lsr#1
 	eorcs r3,r3,#0xE10000
-	mov r4,r4,lsl#4
-	orrcs r4,r4,#0xF
-	subs r2,r2,#1
-	bne antLoop1
-	str r4,[r0],#4
+	mov r2,r2,lsl#4
+	orrcs r2,r2,#0xF
+	adds r1,r1,#0x20000000		;@ 8x
+	bcc antLoop1
+	str r2,[r0],#4
 	subs r1,r1,#1
 	bne antLoop0
 

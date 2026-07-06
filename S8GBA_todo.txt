@@ -2,7 +2,9 @@ S8GBA To do
 ------------
 
 	Move sprite handling to RendererGBA
+	Add L/R scrolling in unscaled mode.
 	Add more BIOSes to html builder, test Coleco.
+	Cancel B button when leaving menu.
 	Save region & machine?
 	Games that crash the emulator when machine is set to 'auto' :
 	Master of Darkness

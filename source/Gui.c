@@ -16,7 +16,7 @@
 #include "SegaVDP/Version.h"
 #include "SN76496/Version.h"
 
-#define EMUVERSION "V1.1.8 2026-07-02"
+#define EMUVERSION "V1.1.8 2026-07-06"
 
 static void gammaChange(void);
 static void selectMachine(void);

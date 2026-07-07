@@ -76,11 +76,8 @@ Now you can use the cross to navigate the menus, A to select an option, B to
 
 * Region: Change the region of the SMS and video standard.
 * Machine: Here you can select the hardware, Auto should work for most games.
-* Bios Settings:
-  * Use Bios: Here you can select if you want to use the selected BIOSes.
-  * Select Export Bios: Browse for export bios.
-  * Select Japanese Bios: Browse for japanese bios.
-  * Select GameGear Bios: Browse for GameGear bios.
+* Cpu Speed Hacks: Allow speed hacks.
+* Sound: Not emulating sound can give a speed boost.
 
 ### Settings
 

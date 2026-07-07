@@ -429,7 +429,7 @@ convertInput:			;@ Convert from device keys to target r0=input/output
 ;@----------------------------------------------------------------------------
 	mvn r1,r0
 	tst r1,#KEY_L|KEY_R				;@ Keys to open menu
-	orreq r0,r0,#KEY_OPEN_MENU
+	orreq r0,r0,#ACT_OPEN_MENU
 	bx lr
 ;@----------------------------------------------------------------------------
 refreshEMUjoypads:			;@ Call every frame
@@ -496,7 +496,7 @@ noPause:
 
 	mov r1,#0
 
-	tst r2,#0x20000000			;@ Player2?
+	tst r2,#0x40000000			;@ Player2?
 	strbeq r0,joy0State
 	strbeq r3,joy0Extra
 	strbne r0,joy1State
@@ -549,7 +549,7 @@ refreshColJoypads:
 	ldrb r3,colecoKey
 	orr r1,r1,r3
 
-	tst r2,#0x20000000			;@ Player2?
+	tst r2,#0x40000000			;@ Player2?
 	mov r2,#0
 	str r2,joy0State
 	strbeq r0,joy0State

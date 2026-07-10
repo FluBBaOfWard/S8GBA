@@ -41,16 +41,18 @@ There is an example header file included, "sms.header".
 
 When the emulator starts, you press L+R to open up the menu.
 Now you can use the cross to navigate the menus, A to select an option, B to
- go back a step.
+ go back a step. Important! Saving only supports one SRAM or one Save State!
 
 ## Menu
 
 ### File
 
 * Load Game: Select a game to load.
-* Load NVRAM: Load non volatile ram (EEPROM/SRAM) for the currently running game.
 * Save NVRAM: Save non volatile ram (EEPROM/SRAM) for the currently running game.
+* Load State: Load state for the currently running game.
+* Save State: Save state for the currently running game.
 * Save Settings: Save the current settings.
+* Eject Game: Eject the currently running game, can be used to play BIOS games.
 * Reset Game: Reset the currently running game.
 
 ### Controller

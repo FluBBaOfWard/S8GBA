@@ -9,6 +9,7 @@
 #include "Shared/FileHelper.h"
 #include "Shared/AsmExtra.h"
 #include "Gui.h"
+#include "MasterSystem.h"
 #include "Cart.h"
 #include "Gfx.h"
 #include "io.h"
@@ -82,19 +83,36 @@ void saveSettings() {
 }
 
 int loadNVRAM() {
+	bytecopy_(EMU_SRAM, (u8 *)SRAM, 0x4000);
+	infoOutput("Loaded NVRAM.");
 	return 0;
 }
 
 void saveNVRAM() {
+	if (gCartFlags & SRAMFLAG) {
+		forceSaveNVRAM();
+	}
+}
+void forceSaveNVRAM() {
+	bytecopy_((u8 *)SRAM, EMU_SRAM, 0x4000);
+	infoOutput("Saved NVRAM.");
 }
 
 void loadState(void) {
-//	unpackState(testState);
-	infoOutput("Loaded state.");
+	int size = smsGetStateSize();
+	if ( size < sizeof(SCRATCH_BUFF)) {
+		bytecopy_(SCRATCH_BUFF, (u8 *)SRAM, size);
+		smsUnpackState(SCRATCH_BUFF);
+		infoOutput("Loaded state.");
+	}
 }
 void saveState(void) {
-//	packState(testState);
-	infoOutput("Saved state.");
+	int size = smsGetStateSize();
+	if ( size < sizeof(SCRATCH_BUFF)) {
+		smsPackState(SCRATCH_BUFF);
+		bytecopy_((u8 *)SRAM, SCRATCH_BUFF, size);
+		infoOutput("Saved state.");
+	}
 }
 
 //---------------------------------------------------------------------------------
@@ -113,14 +131,16 @@ bool loadROM(const u8 *rom, int size, int emuFlags) {
 	romSpacePtr = rom;
 	checkMachine();
 	setEmuSpeed(0);
+	cartInitSRAM();
 	loadCart(emuFlags);
-	gameInserted = true;
 	if (emuSettings & AUTOLOAD_NVRAM) {
 		loadNVRAM();
 	}
 	if (emuSettings & AUTOLOAD_STATE) {
 		loadState();
 	}
+	gameInserted = true;
+	powerIsOn = true;
 	closeMenu();
 	return false;
 }
@@ -138,14 +158,6 @@ void selectGame() {
 }
 
 //---------------------------------------------------------------------------------
-/*void ejectCart() {
-	gRomSize = 0x200000;
-	romSpacePtr = (u8 *)ejectCart;
-	tlcs9000MemInit(romSpacePtr);
-	gameInserted = false;
-}*/
-
-//---------------------------------------------------------------------------------
 void loadBIOSes(void) {
 	const RomHeader *bh;
 	int n = 0;
@@ -153,20 +165,23 @@ void loadBIOSes(void) {
 	g_BIOSBASE_JP = NULL;
 	g_BIOSBASE_GG = NULL;
 	g_BIOSBASE_COLECO = NULL;
+	g_BIOSBASE_MSX = NULL;
 	while ((bh = findBios(n++))) {
+		const u8 *dest = (const u8 *)bh + sizeof(RomHeader);
 		if (bh->flags & GG_MODE) {
-			g_BIOSBASE_GG = (const u8 *)bh + sizeof(RomHeader);
+			g_BIOSBASE_GG = dest;
 		}
 		else if (bh->flags & COL_MODE) {
-			g_BIOSBASE_COLECO = (const u8 *)bh + sizeof(RomHeader);
+			g_BIOSBASE_COLECO = dest;
+		}
+		else if (bh->flags & MSX_MODE) {
+			g_BIOSBASE_MSX = dest;
+		}
+		else if (bh->flags & COUNTRY) {
+			g_BIOSBASE_JP = dest;
 		}
 		else {
-			if (bh->flags & COUNTRY) {
-				g_BIOSBASE_JP = (const u8 *)bh + sizeof(RomHeader);
-			}
-			else {
-				g_BIOSBASE_US = (const u8 *)bh + sizeof(RomHeader);
-			}
+			g_BIOSBASE_US = dest;
 		}
 	}
 }

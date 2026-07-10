@@ -17,6 +17,7 @@ extern u8 gArcadeGameSet;
 
 extern const u8 *romSpacePtr;
 extern u8 EMU_SRAM[0x8000];
+extern u8 SCRATCH_BUFF[0x10000];
 extern const void *g_BIOSBASE_US;
 extern const void *g_BIOSBASE_JP;
 extern const void *g_BIOSBASE_GG;
@@ -26,7 +27,8 @@ extern const void *g_BIOSBASE_SORDM5;
 
 void machineInit(void);
 void loadCart(int emuFlags);
-void ejectCart(void);
+void cartEject(void);
+void cartInitSRAM(void);
 
 /**
 * Saves the state of cart to the destination.

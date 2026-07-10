@@ -16,7 +16,7 @@
 #include "SegaVDP/Version.h"
 #include "SN76496/Version.h"
 
-#define EMUVERSION "V1.1.8 2026-07-06"
+#define EMUVERSION "V1.1.8 2026-07-10"
 
 static void gammaChange(void);
 static void selectMachine(void);
@@ -85,10 +85,11 @@ const MItem mainItems[] = {
 };
 const MItem fileItems[] = {
 	{"Load Game->", selectGame},
+	{"Save NVRAM", forceSaveNVRAM},
 	{"Load State", loadState},
 	{"Save State", saveState},
 	{"Save Settings", saveSettings},
-	{"Eject Game", ejectCart},
+	{"Eject Game", cartEject},
 	{"Reset Game", resetConsole},
 };
 const MItem ctrlItems[] = {
@@ -117,7 +118,9 @@ const MItem machineItems[] = {
 };
 const MItem setItems[] = {
 	{"Speed: ", speedSet, getSpeedText},
-	{"Autoload State: ", autoStateSet, getAutoStateText},
+//	{"Autoload State: ", autoStateSet, getAutoStateText},
+	{"Autoload NVRAM:", autoNVRAMSet, getAutoNVRAMText},
+	{"Autosave NVRAM:", saveNVRAMSet, getSaveNVRAMText},
 	{"Autosave Settings: ", autoSettingsSet, getAutoSettingsText},
 	{"Autopause Game: ", autoPauseGameSet, getAutoPauseGameText},
 	{"EWRAM Overclock: ", ewramSet, getEWRAMText},
@@ -247,7 +250,7 @@ void powerOnOff() {
 
 void resetConsole() {
 	checkMachine();
-	loadCart(0);
+	loadCart(gEmuFlags);
 }
 
 void updateGameInfo() {
@@ -302,10 +305,10 @@ void stepFrameUI() {
 //---------------------------------------------------------------------------------
 /// Switch between Player 1 & Player 2 controls
 void controllerSet() {				// See io.s: refreshEMUjoypads
-	joyCfg ^= 0x20000000;
+	joyCfg ^= 0x40000000;
 }
 const char *getControllerText() {
-	return ctrlTxt[(joyCfg>>29)&1];
+	return ctrlTxt[(joyCfg>>30)&1];
 }
 
 /// Swap A & B buttons

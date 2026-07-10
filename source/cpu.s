@@ -67,19 +67,22 @@ run:		;@ Return after X frame(s)
 ;@----------------------------------------------------------------------------
 runStart:
 ;@----------------------------------------------------------------------------
+	ldr r2,=yStart
+	ldr r1,[r2]
+	movs r3,r1,lsr#24
+	beq noScrl
 	ldr r0,=EMUinput
 	ldr r0,[r0]
-
-	ldr r2,=yStart
-	ldrb r1,[r2]
+	and r1,r1,#0xFF
 	tst r0,#0x200				;@ L?
 	subsne r1,#1
 	movmi r1,#0
 	tst r0,#0x100				;@ R?
 	addne r1,#1
-	cmp r1,#224-SCREEN_HEIGHT
-	movpl r1,#224-SCREEN_HEIGHT
-@	strb r1,[r2]
+	cmp r1,r3
+	movpl r1,r3
+	strb r1,[r2]
+noScrl:
 
 	ldr z80ptr,=Z80OpTable
 	bl refreshEMUjoypads		;@ Z=1 if communication ok
@@ -159,7 +162,6 @@ cpuReset:		;@ Called by loadCart/resetGame
 	addeq r0,r0,r0,lsr#1
 	str r0,scanlineCycles
 
-
 	ldr r0,=Z80OpTable
 	mov r1,#0					;@ SMS
 	cmp r4,#HW_MEGADRIVE
@@ -173,9 +175,10 @@ cpuReset:		;@ Called by loadCart/resetGame
 	ldr r0,[r0]
 	str r0,[z80ptr,#z80IrqVectorFunc]
 
+//	bl hacksInit
 	ldmfd sp!,{r4,lr}
 	bx lr
 
 ;@----------------------------------------------------------------------------
 	.end
-#endif // #ifdef __arm__
+#endif // __arm__

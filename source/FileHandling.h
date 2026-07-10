@@ -20,6 +20,7 @@ bool loadGame(const RomHeader *rh);
 void checkMachine(void);
 int loadNVRAM(void);
 void saveNVRAM(void);
+void forceSaveNVRAM(void);
 void loadState(void);
 void saveState(void);
 //void ejectCart(void);

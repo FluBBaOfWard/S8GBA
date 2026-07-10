@@ -82,6 +82,9 @@ antWarsInit:
 	ldr r4,=VDP0
 	mov r0,#0x40
 	strb r0,[r4,#vdpMode2Bak2]
+	adr r0,BG_SCALING_1_1
+	bl loadScaleValues
+	bl VDP0ApplyScaling
 
 	ldr r0,=EMUPALBUFF			;@ Setup palette for antWars.
 	mov r1,#0
@@ -166,10 +169,10 @@ gfxReset:					;@ Called with cpuReset
 //	mov r2,#1					;@ 2*4
 //	bl memclr_					;@ Clear GFX regs
 
-	ldr r0,=wTop
-	str r1,[r0]
-	ldr r0,=yStart
-	strb r1,[r0]
+	str r1,wTop
+	strb r1,yStart
+	mov r1,#-1
+	strb r1,oldHeightMode
 
 	bl VDP0Reset
 
@@ -336,9 +339,8 @@ setupScaling:		;@ r0-r3, r12 modified.
 
 	cmp r1,#SCALED_FIT
 	bne noFit
-	adr r0,BG_SCALING_TO_FIT
 	tst r3,#GG_MODE
-	adrne r0,BG_SCALING_1_1_GGMODE
+	adreq r0,BG_SCALING_TO_FIT
 	b loadScaleValues
 noFit:
 	cmp r1,#SCALED_ASPECT
@@ -368,6 +370,8 @@ loadScaleValues:
 	ldmia r0!,{r1-r3}
 	adr r12,scaleSprParam
 	stmia r12,{r1-r3}
+	ldr r1,[r0]
+	str r1,BG_SCALING_SCRL
 
 	b buildSpriteScaling
 
@@ -376,36 +380,43 @@ BG_SCALING_TO_FIT:				;@ 192->SCREEN_HEIGHT, 224->S_H, 240->S_H
 	.long SCREEN_HEIGHT,SCREEN_HEIGHT,SCREEN_HEIGHT
 	.long 0x0000,0x0000,0x0000
 	.long 0x0100,0x0120,0x0092
+	.byte 0,0,0,0
 BG_SCALING_1_1:
 	.long 0xFFFF,0xFFFF,0xFFFF
 	.long SCREEN_HEIGHT,SCREEN_HEIGHT,SCREEN_HEIGHT
-	.long 0x0000,0x0010,0x0018
+	.long 0x0010,0x0020,0x0028
 	.long 0x0100,0x0100,0x0080
+	.byte 192-SCREEN_HEIGHT,224-SCREEN_HEIGHT,240-SCREEN_HEIGHT,0
 BG_SCALING_1_1_GGMODE:
 	.long 0xFFFF,0xFFFF,0xFFFF
 	.long 0x0898,0x0898,0x0898
 	.long 0x0010,0x0020,0x0028
 	.long 0x0100,0x0100,0x0080
+	.byte 0,0,0,0
 BG_SCALING_ASPECT_PAL:			;@ (4->3) 192->144, 224->168, 240->180
 	.long 0xC000,0xC000,0xC000
 	.long 0x0800 + SCREEN_HEIGHT-8,SCREEN_HEIGHT,SCREEN_HEIGHT
 	.long    -10,      4,    8
 	.long 0x0155,0x0155,0x00AD
+	.byte 0,10,15,0
 BG_SCALING_ASPECT_NTSC:			;@ 192->170, 224->199, 240->213
 	.long 0xE38F,0xE38F,0xE38F
 	.long SCREEN_HEIGHT,SCREEN_HEIGHT,SCREEN_HEIGHT
 	.long      5,    19,    26
 	.long 0x0100,0x0120,0x0092
+	.byte 0,0,0,0
 BG_SCALING_ASPECT_GG:			;@ 192->160, 224->180, 6->5
 	.long 0xD51C,0xD51C,0xD51C
 	.long SCREEN_HEIGHT,SCREEN_HEIGHT,SCREEN_HEIGHT
 	.long      0,    10,    12
 	.long 0x0133,0x0133,0x0092
+	.byte 0,32,45,0
 BG_SCALING_ASPECT_GGMODE:		;@ 160x144 -> 160x120, 6->5
 	.long 0xD51C,0xD51C,0xD51C
-	.long 0x249C,0x249C,0x249C
-	.long    -19,    -3,0x0008
+	.long 0x148C,0x148C,0x148C
+	.long      0,     3,0x0008
 	.long 0x0133,0x0133,0x0092
+	.byte 0,0,0,0
 
 BG_SCALING_TBL:
 	.long 0,0,0
@@ -413,6 +424,8 @@ BG_SCALING_WIN:
 	.long SCREEN_HEIGHT,SCREEN_HEIGHT,SCREEN_HEIGHT
 BG_SCALING_OFS:
 	.long 0,0,0
+BG_SCALING_SCRL:
+	.byte 0,0,0,0
 
 scaleParms:
 	.long 0x0000				;@ Rotate value
@@ -465,10 +478,10 @@ VDP0ApplyScaling:		;@ r0-r2, r12 modified.
 	.type VDP0ApplyScaling STT_FUNC
 ;@----------------------------------------------------------------------------
 	ldr vdpptr,=VDP0
+	ldrb r0,[vdpptr,#vdpHeightMode]
 ;@----------------------------------------------------------------------------
 applyScaling:		;@ r0-r2 modified, r12 = vdpptr.
 ;@----------------------------------------------------------------------------
-	ldrb r0,[vdpptr,#vdpHeightMode]
 	and r0,r0,#VDPMODE_HEIGHTMASK		;@ 224 and/or 240 height
 	adr r2,BG_SCALING_TBL
 	ldr r1,[r2,r0,lsr#2]
@@ -478,8 +491,10 @@ applyScaling:		;@ r0-r2 modified, r12 = vdpptr.
 	str r1,WindowVValue
 	adr r2,BG_SCALING_OFS
 	ldr r1,[r2,r0,lsr#2]
-	ldr r0,=yStart
-	strb r1,[r0]
+	strb r1,yStart
+	adr r2,BG_SCALING_SCRL
+	ldrb r1,[r2,r0,lsr#4]
+	strb r1,yStartMax
 	bx lr
 ;@----------------------------------------------------------------------------
 paletteInit:		;@ r0-r3 modified.
@@ -903,7 +918,12 @@ endFrame:					;@ Called at screen end (~line 192)	(r0 & r2 safe to use)
 	ldrb r1,[vdpptr,#vdpXScroll]
 	bl VDPReg08W
 ;@--------------------------
-	bl applyScaling
+	ldrb r0,[vdpptr,#vdpHeightMode]
+	ldrb r1,oldHeightMode
+	and r0,r0,#VDPMODE_HEIGHTMASK		;@ 224 and/or 240 height
+	cmp r1,r0
+	strbne r0,oldHeightMode
+	blne applyScaling
 	adr lr,sDMARet
 	ldrb r0,[vdpptr,#vdpRealMode]
 	cmp r0,#VDPMODE_4
@@ -1360,10 +1380,13 @@ frameTotal:			;@ let ui.c see frame count for savestates
 paletteMask:		.long 0x7FFF
 
 gfxState:
-yStart:				.byte 0
+yStart:				.byte 0		;@ Kepp these together
+					.skip 2
+yStartMax:			.byte 192-SCREEN_HEIGHT
+
 SPRS:				.byte 0		;@ SpriteScanning On/Off
-				.byte 0
-				.byte 0
+oldHeightMode:		.byte -1
+					.skip 2
 GFX_DISPCNT:
 	.long 0
 GFX_BG0CNT:

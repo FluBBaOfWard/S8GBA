@@ -27,6 +27,7 @@ TARGET		:= $(notdir $(CURDIR))
 BUILD		:= build
 SOURCES		:=	source \
 				source/Shared \
+				source/Shared/ECL \
 				source/ARMZ80 \
 				source/SegaVDP \
 				source/SN76496 \

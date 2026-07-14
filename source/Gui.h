@@ -15,6 +15,8 @@ void nullUINormal(int key);
 void nullUIDebug(int key);
 
 void uiNullNormal(void);
+void ui12(void);
+void ui13(void);
 
 void sdscHandler(const unsigned char sdscChar);
 void debugIOUnimplR(u16 port);

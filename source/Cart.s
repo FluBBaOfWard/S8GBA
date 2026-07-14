@@ -870,7 +870,6 @@ ss0:
 	bx lr
 
 saveLst:
-	.long EMU_SRAM,0x8000
 	.long EMU_RAM,0x2000
 	.long romInfo,12
 	.long BankState,24
@@ -1485,8 +1484,6 @@ WRAP_RAM:						;@ Fix for "Aerial Assault [v0].gg" which jump to $FFFx and then 
 	.space 8
 EMU_SRAM:
 	.space 0x8000
-SCRATCH_BUFF:
-	.space 0x10000
 DISABLEDMEM:
 	.space 0x400
 WRMEMTBL_:
@@ -1495,6 +1492,8 @@ MEMMAPTBL_:
 	.space 8*4
 ROMBANKMAP:
 	.space 256*4
+SCRATCH_BUFF:
+	.space 0x20000
 
 ;@----------------------------------------------------------------------------
 	.end

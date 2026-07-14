@@ -16,7 +16,7 @@
 #include "SegaVDP/Version.h"
 #include "SN76496/Version.h"
 
-#define EMUVERSION "V1.1.8 2026-07-10"
+#define EMUVERSION "V1.1.8 2026-07-14"
 
 static void gammaChange(void);
 static void selectMachine(void);
@@ -61,7 +61,6 @@ static const char *getCountryText(void);
 
 static void uiAbout(void);
 static void uiSelectMachine(void);
-static void uiLoadGame(void);
 
 static void updateGameInfo(void);
 
@@ -85,12 +84,13 @@ const MItem mainItems[] = {
 };
 const MItem fileItems[] = {
 	{"Load Game->", selectGame},
-	{"Save NVRAM", forceSaveNVRAM},
 	{"Load State", loadState},
 	{"Save State", saveState},
+	{"Save NVRAM", forceSaveNVRAM},
+	{"Manage NVRAM->", viewNVRAM},
+	{"Manage States->", viewSStates},
 	{"Save Settings", saveSettings},
 	{"Eject Game", cartEject},
-	{"Reset Game", resetConsole},
 };
 const MItem ctrlItems[] = {
 	{"B Autofire: ", autoBSet, getAutoBText},
@@ -118,9 +118,9 @@ const MItem machineItems[] = {
 };
 const MItem setItems[] = {
 	{"Speed: ", speedSet, getSpeedText},
-//	{"Autoload State: ", autoStateSet, getAutoStateText},
-	{"Autoload NVRAM:", autoNVRAMSet, getAutoNVRAMText},
-	{"Autosave NVRAM:", saveNVRAMSet, getSaveNVRAMText},
+	{"Autoload State: ", autoStateSet, getAutoStateText},
+	{"Autoload NVRAM: ", autoNVRAMSet, getAutoNVRAMText},
+	{"Autosave NVRAM: ", saveNVRAMSet, getSaveNVRAMText},
 	{"Autosave Settings: ", autoSettingsSet, getAutoSettingsText},
 	{"Autopause Game: ", autoPauseGameSet, getAutoPauseGameText},
 	{"EWRAM Overclock: ", ewramSet, getEWRAMText},
@@ -152,11 +152,13 @@ const Menu menu5 = MENU_M("Machine Settings", uiAuto, machineItems);
 const Menu menu6 = MENU_M("Other Settings", uiAuto, setItems);
 const Menu menu7 = MENU_M("Debug", uiAuto, debugItems);
 const Menu menu8 = MENU_M("About", uiAbout, dummyItems);
-const Menu menu9 = MENU_M("Load game", uiLoadGame, fnList9);
+const Menu menu9 = MENU_M("Load game", setupSubMenuText, fnList9);
 const Menu menu10 = MENU_M("Quit Emulator?", uiAuto, quitItems);
 const Menu menu11 = MENU_M("Select Machine", uiSelectMachine, fnList11);
+const Menu menu12 = MENU_M("Delete NVRAM", setupSubMenuText, dummyItems);
+const Menu menu13 = MENU_M("Delete States", setupSubMenuText, dummyItems);
 
-const Menu *const menus[] = {&menu0, &menu1, &menu2, &menu3, &menu4, &menu5, &menu6, &menu7, &menu8, &menu9, &menu10, &menu11 };
+const Menu *const menus[] = {&menu0, &menu1, &menu2, &menu3, &menu4, &menu5, &menu6, &menu7, &menu8, &menu9, &menu10, &menu11, &menu12, &menu13 };
 
 EWRAM_BSS char gameInfoString[32];
 
@@ -220,13 +222,17 @@ void uiSelectMachine() {
 	}
 }
 
-void uiLoadGame() {
-	setupSubMenuText();
-}
-
 void ui11() {
 	enterMenu(11);
 	selected = gMachineSet;
+}
+
+void ui12() {
+	enterMenu(12);
+}
+
+void ui13() {
+	enterMenu(13);
 }
 
 void nullUINormal(int key) {

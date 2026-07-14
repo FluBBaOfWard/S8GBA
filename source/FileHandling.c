@@ -7,6 +7,7 @@
 #include "Shared/EmuMenu.h"
 #include "Shared/EmuSettings.h"
 #include "Shared/FileHelper.h"
+#include "Shared/SRAMHandler.h"
 #include "Shared/AsmExtra.h"
 #include "Gui.h"
 #include "MasterSystem.h"
@@ -36,7 +37,6 @@ void applyConfigData(void) {
 }
 
 void updateConfigData(void) {
-	strcpy(cfg.magic, "cfg");
 	cfg.emuSettings = emuSettings & ~EMUSPEED_MASK; // Clear speed setting.
 	cfg.sprites     = SPRS;
 	cfg.glasses     = g3DEnable;
@@ -50,6 +50,8 @@ void updateConfigData(void) {
 
 void initSettings(void) {
 	memset(&cfg, 0, sizeof(cfg));
+	cfg.ch.size     = sizeof(cfg);
+	cfg.ch.type     = CONFIG_SAVE;
 	cfg.emuSettings = AUTOPAUSE_EMULATION | AUTOLOAD_NVRAM | AUTOSLEEP_OFF;
 	cfg.sprites     = 0;		// SpriteScanning On/Off;
 	cfg.glasses     = 1;
@@ -63,62 +65,87 @@ void initSettings(void) {
 }
 
 int loadSettings() {
-	bytecopy_((u8 *)&cfg, (u8 *)SRAM+0x10000-sizeof(ConfigData), sizeof(ConfigData));
-	if (strstr(cfg.magic,"cfg")) {
+	if (readConfig((ConfigHeader *)&cfg)) {
 		applyConfigData();
 		infoOutput("Settings loaded.");
 		return 0;
 	}
 	else {
 		updateConfigData();
-		infoOutput("Error in settings file.");
+		infoOutput("No settings file found.");
 	}
 	return 1;
 }
 void saveSettings() {
 	updateConfigData();
 
-	bytecopy_((u8 *)SRAM+0x10000-sizeof(ConfigData), (u8 *)&cfg, sizeof(ConfigData));
-	infoOutput("Settings saved.");
+	if (writeConfig((ConfigHeader *)&cfg)) {
+		infoOutput("Settings saved.");
+	}
+	else {
+		infoOutput("Could not save settings file.");
+	}
 }
 
 int loadNVRAM() {
-	bytecopy_(EMU_SRAM, (u8 *)SRAM, 0x4000);
-	infoOutput("Loaded NVRAM.");
+	if (loadEmuSram(EMU_SRAM, 0x8000)) {
+		infoOutput("Loaded NVRAM.");
+		return 1;
+	}
 	return 0;
 }
-
 void saveNVRAM() {
 	if (gCartFlags & SRAMFLAG) {
 		forceSaveNVRAM();
 	}
 }
+int forceSaveNVRAMChk() {
+	if (saveEmuSram(EMU_SRAM, 0x8000)) {
+		infoOutput("Saved NVRAM.");
+		return 1;
+	}
+	return 0;
+}
 void forceSaveNVRAM() {
-	bytecopy_((u8 *)SRAM, EMU_SRAM, 0x4000);
-	infoOutput("Saved NVRAM.");
+	forceSaveNVRAMChk();
+}
+int loadStateChk() {
+	if (getStateSize() < 0x10000
+		&& quickLoad()) {
+		infoOutput("Loaded state.");
+		return loadNVRAM();
+	}
+	return 0;
+}
+int saveStateChk() {
+	if (getStateSize() < 0x10000
+		&& quickSave()) {
+		infoOutput("Saved state.");
+		return forceSaveNVRAMChk();
+	}
+	return 0;
 }
 
-void loadState(void) {
-	int size = smsGetStateSize();
-	if ( size < sizeof(SCRATCH_BUFF)) {
-		bytecopy_(SCRATCH_BUFF, (u8 *)SRAM, size);
-		smsUnpackState(SCRATCH_BUFF);
-		infoOutput("Loaded state.");
-	}
+void loadState() {
+	loadStateChk();
 }
-void saveState(void) {
-	int size = smsGetStateSize();
-	if ( size < sizeof(SCRATCH_BUFF)) {
-		smsPackState(SCRATCH_BUFF);
-		bytecopy_((u8 *)SRAM, SCRATCH_BUFF, size);
-		infoOutput("Saved state.");
-	}
+void saveState() {
+	saveStateChk();
+}
+int packState(void *statePtr) {
+	return smsPackState(statePtr);
+}
+void unpackState(const void *statePtr) {
+	smsUnpackState(statePtr);
+}
+int getStateSize() {
+	return smsGetStateSize();
 }
 
 //---------------------------------------------------------------------------------
 bool loadGame(const RomHeader *rh) {
 	if (rh) {
-		return loadROM((const u8 *)rh + sizeof(RomHeader), rh->filesize, rh->flags);
+		return loadROM(rh->romData, rh->filesize, rh->flags);
 	}
 	return true;
 }
@@ -133,11 +160,13 @@ bool loadROM(const u8 *rom, int size, int emuFlags) {
 	setEmuSpeed(0);
 	cartInitSRAM();
 	loadCart(emuFlags);
-	if (emuSettings & AUTOLOAD_NVRAM) {
-		loadNVRAM();
-	}
+	int loadedSRAM = 0;
 	if (emuSettings & AUTOLOAD_STATE) {
-		loadState();
+		loadedSRAM = loadStateChk();
+	}
+	if ((emuSettings & AUTOLOAD_NVRAM)
+		&& loadedSRAM == 0) {
+		loadNVRAM();
 	}
 	gameInserted = true;
 	powerIsOn = true;
@@ -155,6 +184,22 @@ void selectGame() {
 	else {
 		pauseEmulation = false;
 	}
+}
+
+void viewNVRAM() {
+	pauseEmulation = true;
+	ui12();
+	skipScroll();
+	manageNVRAM();
+	backOutOfMenu();
+}
+
+void viewSStates() {
+	pauseEmulation = true;
+	ui13();
+	skipScroll();
+	loadStateMenu();
+	backOutOfMenu();
 }
 
 //---------------------------------------------------------------------------------

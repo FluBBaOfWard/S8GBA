@@ -17,7 +17,7 @@ extern u8 gArcadeGameSet;
 
 extern const u8 *romSpacePtr;
 extern u8 EMU_SRAM[0x8000];
-extern u8 SCRATCH_BUFF[0x10000];
+extern u8 SCRATCH_BUFF[0x20000];
 extern const void *g_BIOSBASE_US;
 extern const void *g_BIOSBASE_JP;
 extern const void *g_BIOSBASE_GG;

@@ -6,7 +6,7 @@
 	url = https://github.com/FluBBaOfWard/SegaVDP.git
 [submodule "source/Shared"]
 	path = source/Shared
-	url = https://github.com/FluBBaOfWard/NDS_Shared.git
+	url = https://github.com/FluBBaOfWard/GBA_Shared.git
 [submodule "source/SN76496"]
 	path = source/SN76496
 	url = https://github.com/FluBBaOfWard/SN76496.git

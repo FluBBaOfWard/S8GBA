@@ -1,7 +1,6 @@
 S8GBA To do
 ------------
 
-	Fix save states.
 	Move sprite handling to RendererGBA.
 	Save region & machine?
 	Games that crash the emulator when machine is set to 'auto' :

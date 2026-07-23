@@ -50,8 +50,6 @@ void updateConfigData(void) {
 
 void initSettings(void) {
 	memset(&cfg, 0, sizeof(cfg));
-	cfg.ch.size     = sizeof(cfg);
-	cfg.ch.type     = CONFIG_SAVE;
 	cfg.emuSettings = AUTOPAUSE_EMULATION | AUTOLOAD_NVRAM | AUTOSLEEP_OFF;
 	cfg.sprites     = 0;		// SpriteScanning On/Off;
 	cfg.glasses     = 1;
@@ -65,7 +63,7 @@ void initSettings(void) {
 }
 
 int loadSettings() {
-	if (readConfig((ConfigHeader *)&cfg)) {
+	if (readFile((u8 *)&cfg, sizeof(cfg), SMSID)) {
 		applyConfigData();
 		infoOutput("Settings loaded.");
 		return 0;
@@ -79,7 +77,7 @@ int loadSettings() {
 void saveSettings() {
 	updateConfigData();
 
-	if (writeConfig((ConfigHeader *)&cfg)) {
+	if (writeFile((u8 *)&cfg, sizeof(cfg), SMSID, "Config")) {
 		infoOutput("Settings saved.");
 	}
 	else {
@@ -112,7 +110,7 @@ void forceSaveNVRAM() {
 int loadStateChk() {
 	if (getStateSize() < 0x10000
 		&& quickLoad()) {
-		infoOutput("Loaded state.");
+		infoOutput("Loaded State.");
 		return loadNVRAM();
 	}
 	return 0;
@@ -120,7 +118,7 @@ int loadStateChk() {
 int saveStateChk() {
 	if (getStateSize() < 0x10000
 		&& quickSave()) {
-		infoOutput("Saved state.");
+		infoOutput("Saved State.");
 		return forceSaveNVRAMChk();
 	}
 	return 0;

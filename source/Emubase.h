@@ -1,7 +1,9 @@
-#include "Shared/SRAMHandler.h"
-
 #ifndef EMUBASE
 #define EMUBASE
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define SMSID 0x1A534D53		// "SMS",0x1A
 
@@ -17,7 +19,6 @@ typedef struct {
 } RomHeader;
 
 typedef struct {				// (config struct)
-	ConfigHeader ch;			// From SRAMHandler.
 	int emuSettings;			// Misc standard settings
 	int sleepTime;				// autoSleepTime
 	u8 scaling;					// from gfx.s
@@ -29,5 +30,9 @@ typedef struct {				// (config struct)
 	u8 controller;				// from io.s
 	u8 dipSwitch0;				// from io.s
 } ConfigData;
+
+#ifdef __cplusplus
+} // extern "C"
+#endif
 
 #endif // EMUBASE

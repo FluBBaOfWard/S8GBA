@@ -16,7 +16,7 @@
 #include "SegaVDP/Version.h"
 #include "SN76496/Version.h"
 
-#define EMUVERSION "V1.1.8 2026-07-14"
+#define EMUVERSION "V1.1.8 2026-07-22"
 
 static void gammaChange(void);
 static void selectMachine(void);
@@ -152,7 +152,7 @@ const Menu menu5 = MENU_M("Machine Settings", uiAuto, machineItems);
 const Menu menu6 = MENU_M("Other Settings", uiAuto, setItems);
 const Menu menu7 = MENU_M("Debug", uiAuto, debugItems);
 const Menu menu8 = MENU_M("About", uiAbout, dummyItems);
-const Menu menu9 = MENU_M("Load game", setupSubMenuText, fnList9);
+const Menu menu9 = MENU_M("Load Game", setupSubMenuText, fnList9);
 const Menu menu10 = MENU_M("Quit Emulator?", uiAuto, quitItems);
 const Menu menu11 = MENU_M("Select Machine", uiSelectMachine, fnList11);
 const Menu menu12 = MENU_M("Delete NVRAM", setupSubMenuText, dummyItems);

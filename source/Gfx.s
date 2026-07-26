@@ -158,7 +158,8 @@ gfxInit:					;@ (called from main.c) only need to call once
 	stmfd sp!,{lr}
 	bl rendererInit
 	ldmfd sp!,{lr}
-	b VDP0Reset
+	ldr vdpptr,=VDP0
+	b vdpSetupPtrs
 ;@----------------------------------------------------------------------------
 gfxReset:					;@ Called with cpuReset
 ;@----------------------------------------------------------------------------
@@ -244,19 +245,7 @@ VDP0Reset:
 	tst r3,#GG_MODE
 	orrne r0,r0,#GGMODE
 	bl VDPReset				;@ r0=vdp/tv type, r1 = IRQ function ptr, r2 = debounce routine, r12 = vdpptr.
-	ldr r0,=OAMBuffer1
-	str r0,[vdpptr,#vdpTmpOAMBuffer]
-	ldr r0,=OAMBuffer2
-	str r0,[vdpptr,#vdpDMAOAMBuffer]
-
-	mov r0,#0x0000				;@ BGR map
-	str r0,[vdpptr,#vdpBgrMapOfs0]
-	mov r0,#0x0000				;@ BGR map
-	str r0,[vdpptr,#vdpBgrMapOfs1]
-	ldr r0,=BG_GFX+0x05800		;@ BGR tiles
-	str r0,[vdpptr,#vdpBgrTileOfs]
-	ldr r0,=BG_GFX+0x14000		;@ SPR tiles
-	str r0,[vdpptr,#vdpSprTileOfs]
+	bl vdpSetupPtrs
 
 	ldr r0,=gEmuFlags
 	ldr r0,[r0]
@@ -265,6 +254,23 @@ VDP0Reset:
 	movne r0,#50
 	bl setTargetFPS
 	ldmfd sp!,{pc}
+
+;@----------------------------------------------------------------------------
+vdpSetupPtrs:
+;@----------------------------------------------------------------------------
+	ldr r0,=OAMBuffer1
+	str r0,[vdpptr,#vdpTmpOAMBuffer]
+	ldr r0,=OAMBuffer2
+	str r0,[vdpptr,#vdpDMAOAMBuffer]
+	mov r0,#0x0000				;@ BGR map
+	str r0,[vdpptr,#vdpBgrMapOfs0]
+	mov r0,#0x0000				;@ BGR map
+	str r0,[vdpptr,#vdpBgrMapOfs1]
+	ldr r0,=BG_GFX+0x05800		;@ BGR tiles
+	str r0,[vdpptr,#vdpBgrTileOfs]
+	ldr r0,=BG_GFX+0x14000		;@ SPR tiles
+	str r0,[vdpptr,#vdpSprTileOfs]
+	bx lr
 ;@----------------------------------------------------------------------------
 clearTileMaps:
 ;@----------------------------------------------------------------------------
@@ -757,7 +763,7 @@ vblIrqHandler:
 
 	ldrb r3,[vdpptr,#vdpYScrollBak1]
 	ldr r7,[vdpptr,#vdpScrollMask]
-	add r5,vdpptr,#scrollBuff
+	add r5,vdpptr,#scrollTMapBuff
 	ldr r4,=yStart
 	ldrsb r4,[r4]
 	add r5,r5,r4,lsl#1

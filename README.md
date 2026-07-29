@@ -41,7 +41,10 @@ There is an example header file included, "sms.header".
 
 When the emulator starts, you press L+R to open up the menu.
 Now you can use the cross to navigate the menus, A to select an option, B to
- go back a step. Important! Saving only supports one SRAM or one Save State!
+go back a step.
+
+When playing SMS 3D games you might want to turn down the color a bit for
+better 3D effect, I have only tested with red/cyan glasses.
 
 ## Menu
 
@@ -105,6 +108,24 @@ Now you can use the cross to navigate the menus, A to select an option, B to
 ### About
 
 Some dumb info...
+
+## Controls
+
+### Master System
+
+```text
+Dpad is mapped to up, down, left & right.
+B is mapped to Button 1.
+A is mapped to Button 2.
+Start is mapped to Pause on console.
+Select can be mapped to Reset on console.
+```
+
+### Game Gear
+
+```text
+Start is mapped to Start on console.
+```
 
 ## Credits
 

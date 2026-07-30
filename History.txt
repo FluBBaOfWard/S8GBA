@@ -2,9 +2,10 @@ S8GBA revision history
 -=-=-=-=-=-=-=-=-=-=-=-
 
 
-V1.1.8 - 2026-07-29 (FluBBa)
+V1.1.8 - 2026-07-30 (FluBBa)
 	Ported NDS version back to GBA.
 	Added saving/loading of config/NVRAM/states.
+	Added a HTML builder.
 	Optimized the SN76496 chip.
 	Optimized the VDP chip.
 

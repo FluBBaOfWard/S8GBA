@@ -12,6 +12,7 @@
 	.global gTwitch
 	.global gScaling
 	.global gGfxMask
+	.global gLockTopRows
 	.global yStart
 	.global SPRS
 	.global paletteMask
@@ -670,6 +671,31 @@ ggSGLoop:
 
 	ldmfd sp!,{r4-r5}
 	bx lr
+;@----------------------------------------------------------------------------
+unscaleBuffer3:
+	add r4,r6,#1				;@ Check for scaling.
+	movs r4,r4,lsl#16
+	bne scaleBuffer3
+	ldrb r4,gLockTopRows
+	cmp r4,#1
+	movne r4,r4,lsl#5
+	ldrbeq r4,[vdpptr,#vdpMode1]
+	tst r4,#0x40				;@ Are top rows locked in VDP?
+	beq scaleBuffer3
+
+	ldr r11,=yStart
+	ldrsb r11,[r11]
+	sub r3,r3,r11
+	sub r8,r8,r11,lsl#16
+	mov r4,#0x10				;@ Number of rows to lock.
+	sub r2,r2,r4
+	stmfd sp!,{r2,lr}
+	mov r2,r4
+	bl scaleBuffer3
+	ldmfd sp!,{r2,lr}
+	add r3,r3,r11
+	add r8,r8,r11,lsl#16
+	b scaleBuffer3
 
 	.pool
 
@@ -824,7 +850,7 @@ noJump:
 	mov r2,#SCREEN_HEIGHT
 	tst r10,#0x80				;@ Columns 24-31 locked?
 	adr lr,scaleRet
-	beq scaleBuffer3
+	beq unscaleBuffer3
 	bne scaleBuffer4
 scaleRet:
 
@@ -927,7 +953,8 @@ gGfxMask:		.byte 0
 gColorValue:	.byte 4
 bColor:			.byte 0
 g3DEnable:		.byte 1
-				.skip 3
+gLockTopRows:	.byte 1					;@ Lock top rows in unscaled mode.
+				.skip 2
 ;@----------------------------------------------------------------------------
 endFrame:					;@ Called at screen end (~line 192)	(r0 & r2 safe to use)
 ;@----------------------------------------------------------------------------

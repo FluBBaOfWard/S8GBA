@@ -13,6 +13,7 @@ extern u8 gScaling;
 extern u8 gGfxMask;
 extern u8 gColorValue;
 extern u8 g3DEnable;
+extern u8 gLockTopRows;
 extern u8 bColor;
 extern u8 SPRS;
 

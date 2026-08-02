@@ -32,6 +32,8 @@ static void colorSet(void);
 static const char *getColorText(void);
 static void borderSet(void);
 static const char *getBorderText(void);
+static void lockTopRowsSet(void);
+static const char *getLockTopRowsText(void);
 
 static void controllerSet(void);
 static const char *getControllerText(void);
@@ -108,6 +110,7 @@ const MItem displayItems[] = {
 	{"Color: ", colorSet, getColorText},
 	{"GG Border: ", borderSet, getBorderText},
 	{"Perfect Sprites: ", spriteSet, getSpriteText},
+	{"Lock Top Rows: ", lockTopRowsSet, getLockTopRowsText},
 	{"3D Display: ", glassesSet, getGlassesText},
 };
 const MItem machineItems[] = {
@@ -169,7 +172,7 @@ const char *const machTxt[] = {"Auto", "SG-1000", "SC-3000", "OMV", "SG-1000 II"
 const char *const bordTxt[] = {"Black", "Border Color", "None"};
 const char *const cntrTxt[] = {"Auto", "US (NTSC)", "Europe (PAL)", "Japan (NTSC)"};
 const char *const joypadTxt[] = {"Auto", "SMS 2 Buttton", "MD 3 Button", "MD 6 Button"};
-const char *const biosTxt[] = {"Off", "Auto"};
+const char *const biosTxt[] = {"Off", "Auto", "On"};
 
 /// This is called at the start of the emulator
 void setupGUI() {
@@ -394,6 +397,16 @@ void borderSet() {
 }
 const char *getBorderText() {
 	return bordTxt[bColor];
+}
+
+void lockTopRowsSet() {
+	gLockTopRows++;
+	if (gLockTopRows > 2) {
+		gLockTopRows = 0;
+	}
+}
+const char *getLockTopRowsText() {
+	return biosTxt[gLockTopRows];
 }
 
 /// Turn on/off rendering of background

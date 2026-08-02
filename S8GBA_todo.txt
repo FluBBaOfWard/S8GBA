@@ -1,8 +1,8 @@
 S8GBA To do
 ------------
 
+	Clean up scaling code.
 	Move sprite handling to RendererGBA.
-	Save region & machine?
 	Games that crash the emulator when machine is set to 'auto' :
 	Master of Darkness
 	Vampire

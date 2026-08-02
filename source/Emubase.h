@@ -35,4 +35,4 @@ typedef struct {				// (config struct)
 } // extern "C"
 #endif
 
-#endif // EMUBASE
+#endif // !EMUBASE

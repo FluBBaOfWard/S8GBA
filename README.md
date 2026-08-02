@@ -1,4 +1,4 @@
-# S8GBA V1.1.8
+# S8GBA V1.1.9
 
 <img align="right" width="220" src="./logo.png" />
 
@@ -32,7 +32,8 @@ Check your roms!
 
 On Windows run S8GBA.exe to add roms to the emulator, you can also add a real bios.
 Do no overwrite the original .gba file!
-On other platforms you can use the [HTML Builder](https://flubbaofward.github.io/S8GBA/Builder.html).
+On other platforms you can use the [HTML Builder](https://flubbaofward.github.io/S8GBA/Builder.html),
+always add the bios files before any normal roms.
 
 The header is defined in Emubase.h, it's 64 bytes long, the size field is in
 little endian, the 32bit id is 0x1A534D53 (LE).
@@ -51,12 +52,13 @@ better 3D effect, I have only tested with red/cyan glasses.
 ### File
 
 * Load Game: Select a game to load.
-* Save NVRAM: Save non volatile ram (EEPROM/SRAM) for the currently running game.
 * Load State: Load state for the currently running game.
 * Save State: Save state for the currently running game.
+* Save NVRAM: Save non volatile ram (EEPROM/SRAM) for the currently running game.
+* Manage NVRAM: Delete unwanted NVRAM files.
+* Manage States: Delete unwanted state files.
 * Save Settings: Save the current settings.
 * Eject Game: Eject the currently running game, can be used to play BIOS games.
-* Reset Game: Reset the currently running game.
 
 ### Controller
 
@@ -91,11 +93,18 @@ better 3D effect, I have only tested with red/cyan glasses.
   * 200%: Game can run up to double speed.
   * Max: Games can run up to 4 times normal speed.
   * 50%: Game runs at half speed.
-* Autoload State: Toggle Savestate autoloading. Automagicaly load the
+* Autoload State: Toggle Savestate autoloading. Automatically load the
  savestate associated with the selected game.
+* Autoload NVRAM: Toggle NVRAM autoloading. Automatically load the
+ NVRAM associated with the selected game.
+* Autosave NVRAM: Toggle NVRAM autosaving. Automatically save the
+ NVRAM when entering the menu.
 * Autosave Settings: This will save settings when leaving menu if any
  changes are made.
 * Autopause Game: Toggle if the game should pause when opening the menu.
+* EWRAM Overclock: Changes the waitstates on EWRAM between 2 and 1, might
+ damage your GBA and uses more power, around 10% speedgain. Doesn't work on
+ Gameboy Micro. Use at your own risk!
 * Autosleep: Change the autosleep time, also see Sleep.
 
 ### Debug
@@ -108,6 +117,23 @@ better 3D effect, I have only tested with red/cyan glasses.
 ### About
 
 Some dumb info...
+
+### Sleep
+
+Put the GBA into sleepmode. START+SELECT wakes up from sleep mode (activated
+ from this menu or from 5/10/30 minutes of inactivity).
+
+### Power On/Off
+
+Turn the power on or off on the console.
+
+### Reset Console
+
+Reset the console.
+
+### Quit Emulator
+
+Tries to reset the Flashcart and reboots the GBA.
 
 ## Controls
 

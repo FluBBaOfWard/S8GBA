@@ -16,7 +16,7 @@
 #include "SegaVDP/Version.h"
 #include "SN76496/Version.h"
 
-#define EMUVERSION "V1.1.9 2026-07-31"
+#define EMUVERSION "V1.1.9 2026-08-02"
 
 static void gammaChange(void);
 static void selectMachine(void);
@@ -32,9 +32,6 @@ static void colorSet(void);
 static const char *getColorText(void);
 static void borderSet(void);
 static const char *getBorderText(void);
-
-static void powerOnOff(void);
-static void resetConsole(void);
 
 static void controllerSet(void);
 static const char *getControllerText(void);
@@ -58,6 +55,9 @@ static const char *getGlassesText(void);
 
 static void countrySet(void);
 static const char *getCountryText(void);
+
+static void powerOnOff(void);
+static void resetConsole(void);
 
 static void uiAbout(void);
 static void uiSelectMachine(void);
@@ -351,13 +351,14 @@ const char *getSelectText() {
 
 /// Turn on/off scaling
 void scalingSet(){
-//	gScaling ^= 0x01;
 	gScalingSet++;
 	if (gScalingSet >= 3) {
 		gScalingSet = 0;
 	}
 	setupScaling();
-	VDP0ApplyScaling();
+	if (powerIsOn) {
+		VDP0ApplyScaling();
+	}
 }
 const char *getScalingText() {
 	return dispTxt[gScalingSet];

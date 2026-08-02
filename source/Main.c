@@ -62,7 +62,6 @@ int main(int argc, char **argv) {
 	if (initFileHelper(SMSID)) {
 		loadBIOSes();
 	}
-//	checkMachine();
 	machineInit();
 	if (romsAvailable > 0) {
 		const RomHeader *rh = findRom(0);
@@ -163,10 +162,9 @@ static void setupGraphics() {
 			| WIN1_ON
 			;
 	SetMode(GFX_DISPCNT);
-	REG_BG0CNT = TEXTBG_SIZE_256x256 | BG_MAP_BASE(0) | BG_TILE_BASE(1) | BG_PRIORITY(1);
-	REG_BG1CNT = TEXTBG_SIZE_256x256 | BG_MAP_BASE(0) | BG_TILE_BASE(1) | BG_PRIORITY(2);
-	// Background 2 for border
-	REG_BG2CNT = TEXTBG_SIZE_256x256 | BG_MAP_BASE(2) | BG_256_COLOR | BG_TILE_BASE(1) | BG_PRIORITY(3);
+	REG_BG0CNT = TEXTBG_SIZE_256x256 | BG_MAP_BASE(1) | BG_TILE_BASE(1) | BG_PRIORITY(1);
+	REG_BG1CNT = TEXTBG_SIZE_256x256 | BG_MAP_BASE(2) | BG_TILE_BASE(1) | BG_PRIORITY(2);
+	REG_BG2CNT = TEXTBG_SIZE_256x256 | BG_MAP_BASE(3) | BG_TILE_BASE(1) | BG_PRIORITY(3);
 
 	REG_WIN0H = 0x0000+SCREEN_WIDTH;		// Horizontal start-end
 	REG_WIN0V = 0x0000+SCREEN_HEIGHT;		// Vertical start-end

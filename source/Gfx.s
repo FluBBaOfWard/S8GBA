@@ -80,8 +80,12 @@ antWarsInit:
 	stmfd sp!,{r4,lr}
 
 	ldr r4,=VDP0
+	mov r0,#0x04
+	strb r0,[r4,#vdpMode1]
 	mov r0,#0x40
 	strb r0,[r4,#vdpMode2Bak2]
+	mov r0,#VDPMODE_4
+	strb r0,[r4,#vdpHeightMode]
 	adr r0,BG_SCALING_1_1
 	bl loadScaleValues
 	bl VDP0ApplyScaling
@@ -102,6 +106,7 @@ antWarsInit:
 	bl memclr_					;@ BG1/BG3 clear
 
 	ldr r0,[r4,#vdpBgrTileOfs]
+	add r0,r0,#4*8				;@ Skip first tile.
 	ldr r3,antSeed
 	ldr r1,=32*128
 antLoop0:
@@ -133,6 +138,7 @@ antWars:
 	ldr r0,[r4,#vdpBgrMapOfs0]
 	ldr r3,[r4,#vdpBgrTileOfs]
 	and r3,r3,#0x3FC0
+	add r3,r3,#4*8				;@ Skip first tile.
 	mov r3,r3,lsr#5
 	orr r3,r3,#0x2000			;@ Palette 2
 	mov r1,#BG_GFX
@@ -248,11 +254,11 @@ VDP0Init:
 	str r0,[vdpptr,#vdpTmpOAMBuffer]
 	ldr r0,=OAMBuffer2
 	str r0,[vdpptr,#vdpDMAOAMBuffer]
-	mov r0,#0x0000				;@ BGR map
+	mov r0,#0x0100				;@ BGR map
 	str r0,[vdpptr,#vdpBgrMapOfs0]
-	mov r0,#0x0000				;@ BGR map
+	mov r0,#0x0100				;@ BGR map
 	str r0,[vdpptr,#vdpBgrMapOfs1]
-	ldr r0,=BG_GFX+0x05800		;@ BGR tiles
+	ldr r0,=BG_GFX+0x04000		;@ BGR tiles
 	str r0,[vdpptr,#vdpBgrTileOfs]
 	ldr r0,=BG_GFX+0x14000		;@ SPR tiles
 	str r0,[vdpptr,#vdpSprTileOfs]
@@ -858,21 +864,24 @@ scaleRet:
 	add r2,r2,r1,lsr#12
 	add r0,r2,#0x0001			;@ Prio
 	strh r0,[r8,#REG_BG0CNT]
-	ldr r3,=0x02830102
+	ldr r3,=0x03830102
 	add r0,r2,r3
 	strh r0,[r8,#REG_BG1CNT]
 	ldreq r0,=GFX_BG3CNT		;@ No side panel
 	ldrheq r0,[r0]
 	strh r0,[r8,#REG_BG3CNT]
-	add r0,r2,r3,lsr#16
-	strh r0,[r8,#REG_BG2CNT]
+	mov r3,r3,lsr#16
+	strh r3,[r8,#REG_BG2CNT]
 
 	mov r0,#0x003F
 	ldrb r1,gGfxMask
 	bic r0,r0,r1
 	ldrb r1,[vdpptr,#vdpMode2Bak2]
-	tst r1,#0x40
+	ldrb r2,[vdpptr,#vdpHeightMode]
+	tst r1,#0x40				;@ Screen on?
 	biceq r0,r0,#0x0017			;@ Turn off sprites and bg
+	cmp r2,#VDPMODE_4
+	bicmi r0,r0,#0x0005			;@ Turn off bg 0 & 2 for TMS9918 modes.
 	orr r0,r0,r0,lsl#8
 
 	tst r10,#0x80				;@ Columns 24-31 locked?
@@ -1328,7 +1337,7 @@ dm2Loop:
 	add r0,r11,r0,lsl#8
 
 	mul r0,r5,r0
-	sub r0,r0,r3,lsl#16
+	sub r0,r0,r11,lsl#16
 	orr r0,r6,r0,lsr#24			;@ Size plus scaling?
 	tst r4,#0xF000000			;@ Color 0 sprite = invisible.
 	moveq r0,#0x200+SCREEN_HEIGHT	;@ Double, y=SCREEN_HEIGHT

@@ -428,7 +428,7 @@ convertInput:			;@ Convert from device keys to target r0=input/output
 	.type convertInput STT_FUNC
 ;@----------------------------------------------------------------------------
 	mvn r1,r0
-	tst r1,#KEY_L|KEY_R				;@ Keys to open menu
+	tst r1,#KEY_L|KEY_R			;@ Keys to open menu
 	orreq r0,r0,#ACT_OPEN_MENU
 	bx lr
 ;@----------------------------------------------------------------------------

@@ -2,8 +2,10 @@ S8GBA revision history
 -=-=-=-=-=-=-=-=-=-=-=-
 
 
-V1.1.9 - 2026-07-31 (FluBBa)
+V1.1.9 - 2026-08-02 (FluBBa)
 	Fixed HTML builder hanging on old splash screens.
+	Fixed graphics Mode0 cache (Coleco - Up 'N Down).
+	Fixed sprites vertical position in TMS9918 Modes.
 
 V1.1.8 - 2026-07-30 (FluBBa)
 	Ported NDS version back to GBA.

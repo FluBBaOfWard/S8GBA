@@ -149,11 +149,12 @@ rawRom:
 //	.incbin "coleco/BC's Quest for Tires II - Grog's Revenge (1984) (32k).rom"
 //	.incbin "coleco/Burgertime (1982-84) (Data East).rom" // Mode 2
 //	.incbin "coleco/Chuck Norris - Super Kicks (1983) (Xonox).rom"
-//	.incbin "coleco/Congo Bongo (1984).rom"
+//	.incbin "coleco/Congo Bongo (1984).rom" // Mode 2
 //	.incbin "coleco/Cosmic Avenger (1982) (Universal).rom"
 //	.incbin "coleco/River Raid (1982-84) (Activision) [!].rom" // Mode 0
 //	.incbin "coleco/Smurf - Paint 'n Play Workshop (1983).col" // Mode 3
-//	.incbin "coleco/Spy Hunter (1983-84) (Midway).rom" // Mode 0
+//	.incbin "coleco/Spy Hunter (1983-84) (Midway).rom" // Mode 2
+//	.incbin "coleco/Up 'N Down (1984) (Sega).rom" // Mode 0
 //	.incbin "msx/Bokosuka Wars (1984)(Ascii Corp).rom"
 //	.incbin "msx/Bosconian (1981-84)(Namco Ltd.)(Jp)[a].rom"
 //	.incbin "msx/Boulder Dash (1986)(Orpheus).rom"
@@ -274,6 +275,9 @@ loadCart: 		;@ Called from C:  r0=emuFlags
 	str r1,BankMap_Cart
 	str r1,BankMap0
 
+	bl fillROMBANKMAP
+	ldr r9,=ROMBANKMAP
+
 	ldr r4,=MEMMAPTBL_
 	ldr r6,=WRMEMTBL_
 	ldrmi r8,=rom_W
@@ -284,14 +288,13 @@ loadCart: 		;@ Called from C:  r0=emuFlags
 	mov r0,#0
 tbLoop1:
 	and r1,r0,r2
-	add r1,r3,r1,lsl#14
+	ldr r1,[r9,r1,lsl#2]
 	str r1,[r4,r0,lsl#2]
 	str r8,[r6,r0,lsl#2]
 	add r0,r0,#1
 	cmp r0,#8
 	bne tbLoop1
 
-	bl fillROMBANKMAP
 	bl checkMachine				;@ Returns HW_Machine in r0.
 	mov r9,r0
 

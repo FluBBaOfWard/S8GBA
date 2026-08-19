@@ -110,8 +110,8 @@ const MItem displayItems[] = {
 	{"Color: ", colorSet, getColorText},
 	{"GG Border: ", borderSet, getBorderText},
 	{"Perfect Sprites: ", spriteSet, getSpriteText},
-	{"Lock Top Rows: ", lockTopRowsSet, getLockTopRowsText},
 	{"3D Display: ", glassesSet, getGlassesText},
+	{"Lock Top Rows: ", lockTopRowsSet, getLockTopRowsText},
 };
 const MItem machineItems[] = {
 	{"Region: ", countrySet, getCountryText},

@@ -1,8 +1,7 @@
 S8GBA revision history
 -=-=-=-=-=-=-=-=-=-=-=-
 
-
-V1.1.9 - 2026-08-02 (FluBBa)
+V1.1.9 - 2026-08-19 (FluBBa)
 	Added locking of top rows in unscaled mode.
 	Fixed graphics Mode0 cache (Coleco - Up 'N Down).
 	Fixed sprites vertical position in TMS9918 Modes.

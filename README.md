@@ -78,6 +78,7 @@ better 3D effect, I have only tested with red/cyan glasses.
 * GG Border: Lets you change between black, bordercolor and none.
 * Perfect Sprites: Uses more cpu.
 * 3D Display: Terminator vs Robocop needs this off.
+* Lock Top Rows: This keeps the 2 top rows at the top in unscaled mode.
 
 ### Machine
 
@@ -102,9 +103,9 @@ better 3D effect, I have only tested with red/cyan glasses.
 * Autosave Settings: This will save settings when leaving menu if any
  changes are made.
 * Autopause Game: Toggle if the game should pause when opening the menu.
-* EWRAM Overclock: Changes the waitstates on EWRAM between 2 and 1, might
- damage your GBA and uses more power, around 10% speedgain. Doesn't work on
- Gameboy Micro. Use at your own risk!
+* EWRAM Overclock: Changes the waitstates on EWRAM between 2 and 1, uses more
+ power, around 10% speedgain. Doesn't work on Gameboy Micro, might damage your
+ GBA. Use at your own risk!
 * Autosleep: Change the autosleep time, also see Sleep.
 
 ### Debug

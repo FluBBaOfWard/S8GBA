@@ -149,13 +149,13 @@ bool loadGame(const RomHeader *rh) {
 //---------------------------------------------------------------------------------
 bool loadROM(const u8 *rom, int size, int emuFlags) {
 	selectedGame = selected;
-	cls(0);
 	gRomSize = size;
 	romSpacePtr = rom;
 	checkMachine();
 	setEmuSpeed(0);
 	cartInitSRAM();
 	loadCart(emuFlags);
+	gameInserted = true;
 	int loadedSRAM = 0;
 	if (emuSettings & AUTOLOAD_STATE) {
 		loadedSRAM = loadStateChk();
@@ -164,7 +164,6 @@ bool loadROM(const u8 *rom, int size, int emuFlags) {
 		&& loadedSRAM == 0) {
 		loadNVRAM();
 	}
-	gameInserted = true;
 	powerIsOn = true;
 	closeMenu();
 	return false;
